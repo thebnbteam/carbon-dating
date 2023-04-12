@@ -1,24 +1,46 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { StickyMenu } from "./components";
+import {
+  LandingPage,
+  LoginPage,
+  CalibrationLandingPage,
+  CalibrationQuestionsPage,
+  CalibrationIntroPage,
+  CalibrationCategories,
+} from "./features";
+import { Routes, Route } from "react-router";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <div className="my-0 mx-auto h-screen">
+        <div className="flex justify-end sticky top-0">
+          <StickyMenu />
+        </div>
+        <div className="mt-[10%]">
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/loginpage" element={<LoginPage />} />
+            <Route
+              path="/calibratelandingpage"
+              element={<CalibrationLandingPage />}
+            />
+            <Route
+              path="/calibrationquestions"
+              element={<CalibrationQuestionsPage />}
+            />
+            <Route
+              path="/calibrationintro"
+              element={<CalibrationIntroPage />}
+            />
+            <Route
+              path="/calibrationcategories"
+              element={<CalibrationCategories />}
+            />
+          </Routes>
+        </div>
+      </div>
+    </>
   );
 }
 
