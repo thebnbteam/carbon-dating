@@ -2,6 +2,7 @@ import { FingerPrintLogo } from "../../components";
 import { bioQuestions } from "../../bioquestionconstant";
 import { TextInput } from "../../components";
 import { FaAngleDoubleDown } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 export const CalibrationQuestionsPage = () => {
   return (
@@ -10,7 +11,9 @@ export const CalibrationQuestionsPage = () => {
       {bioQuestions.map((category) => (
         <TextInput title={category} />
       ))}
-      <FaAngleDoubleDown className="text-5xl" />
+      <Link to="/calibrationintro">
+        <FaAngleDoubleDown className="text-5xl mb-24" />
+      </Link>
     </div>
   );
 };

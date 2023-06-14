@@ -4,9 +4,23 @@
 @import url("https://fonts.googleapis.com/css2?family=Mada:wght@200;300;400;500;600;700;900&display=swap");
 
 * {
-  background-color: #fbb6b5;
   font-family: "Mada", sans-serif;
+}
+
+body {
+  background-color: #fbb6b5;
+}
+
+p,
+h2,
+h3,
+h1 {
   color: white;
+}
+
+p {
+  background-color: white;
+  color: black;
 }
 
 h2 {

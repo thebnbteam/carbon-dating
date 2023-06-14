@@ -21,7 +21,7 @@ export const CalibrationIntroPage = () => {
 
   return (
     <>
-      <div className="flex flex-col items-center gap-10 h-screen">
+      <div className="flex flex-col items-center gap-10">
         <FingerPrintLogo />
         <h3 className="text-center text-4xl mx-10 mb-20">
           {introQuote[slideIndex]}
