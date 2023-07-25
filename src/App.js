@@ -17,6 +17,7 @@ import {
   MatchFound,
   DMScreen,
   OverallMessages,
+  SignUpPage,
 } from "./features";
 import { Routes, Route } from "react-router";
 import { FingerPrintLogo } from "./components";
@@ -35,6 +36,7 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/loginpage" element={<LoginPage />} />
+            <Route path="/signuppage" element={<SignUpPage />} />
             <Route
               path="/calibratelandingpage"
               element={<CalibrationLandingPage />}
@@ -68,9 +70,9 @@ function App() {
             <Route path="/dmscreen" element={<DMScreen />} />
             <Route path="/overallmessages" element={<OverallMessages />} />
           </Routes>
-          <div className="w-full relative flex justify-center">
+          {/* <div className="w-full relative flex justify-center">
             <StickyShortcuts />
-          </div>
+          </div> */}
         </div>
       </div>
     </>

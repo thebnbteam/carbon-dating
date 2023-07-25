@@ -14,6 +14,7 @@ import { SwipeLandingPage } from "./matches/SwipeLandingPage";
 import { MatchFound } from "./matches/MatchFound";
 import { DMScreen } from "./messages/DMScreen";
 import { OverallMessages } from "./messages/OverallMessages";
+import { SignUpPage } from "./SignUpPage";
 
 export {
   LandingPage,
@@ -32,4 +33,5 @@ export {
   MatchFound,
   DMScreen,
   OverallMessages,
+  SignUpPage,
 };
