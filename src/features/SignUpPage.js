@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Button, Form, Input, Checkbox } from "antd";
+import React from "react";
+import { Form, Input, Checkbox } from "antd";
+import { SubmitButton } from "../components";
 
 export const SignUpPage = () => {
   const [form] = Form.useForm();
@@ -7,7 +8,7 @@ export const SignUpPage = () => {
 
   return (
     <div className="mt-6 flex flex-col justify-center items-center gap-5">
-      <Form form={form} name="validateOnly" onChange={() => {}}>
+      <Form form={form} name="validateOnly">
         <Form.Item
           name="email"
           label="E-mail"
@@ -86,34 +87,5 @@ export const SignUpPage = () => {
         </Form.Item>
       </Form>
     </div>
-  );
-};
-
-const SubmitButton = ({ form }) => {
-  const values = Form.useWatch([], form);
-  const [submitStatus, setsubmitStatus] = useState(false);
-  useEffect(() => {
-    form
-      .validateFields({
-        validateOnly: true,
-      })
-      .then(
-        () => {
-          setsubmitStatus(true);
-        },
-        () => {
-          setsubmitStatus(false);
-        }
-      );
-  }, [values]);
-  return (
-    <Button
-      disabled={!submitStatus}
-      type="default"
-      htmlType="button"
-      onClick={() => {}}
-    >
-      Register
-    </Button>
   );
 };

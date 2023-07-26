@@ -1,5 +1,5 @@
-import { StickyShortcuts, LandingButtons } from "../../components";
 import { categories } from "../../categoriesconstant";
+import { Button } from "antd";
 
 export const RecalibrationPage = () => {
   const categoriesArray = Object.keys(categories);
@@ -10,16 +10,15 @@ export const RecalibrationPage = () => {
         <div className="my-[20%] flex flex-wrap w-full justify-center">
           {categoriesArray.map((categories) => {
             return (
-              <button className="w-1/3 border border-solid border-white p-2 m-1 rounded-md">
+              <Button className="w-1/3 border border-solid m-1 rounded-md">
                 {categories}
-              </button>
+              </Button>
             );
           })}
         </div>
         <div className="flex justify-center">
-          <LandingButtons text={"back to profile"} />
+          <Button size="large">Back To Profile</Button>
         </div>
-        <StickyShortcuts />
       </div>
     </>
   );

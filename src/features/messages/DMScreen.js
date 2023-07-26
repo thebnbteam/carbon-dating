@@ -1,25 +1,46 @@
-import { randomGuy } from "../../constants/randomprofile";
-import { FaPaperPlane } from "react-icons/fa";
-import { StickyShortcuts } from "../../components";
+import { Input, Button, Space, Layout } from "antd";
+import { SendOutlined } from "@ant-design/icons";
+
+const { TextArea } = Input;
+const { Header, Content, Footer } = Layout;
 
 export const DMScreen = () => {
   return (
-    <>
-      <div className="flex flex-col items-center relative h-screen">
-        <h2 className="text-center">{randomGuy.name}</h2>
-        <div className="bg-white m-3 p-3 border-solid border-white rounded-md border-2 overflow-y-auto h-[50%]">
-          <div></div>
-        </div>
-        <div className="flex justify-center my-5 fixed bottom-10 w-full">
-          <input
-            className="p-3 m-3 border-solid border-2 border-white rounded-lg w-[70%]"
-            type="text"
-            placeholder="What do you want to say?"
-          />
-          <FaPaperPlane className="m-3 self-center text-3xl" />
-        </div>
-      </div>
-      <StickyShortcuts />
-    </>
+    <Layout
+      style={{
+        minHeight: "100vh",
+      }}
+    >
+      <Header
+        style={{
+          position: "sticky",
+          top: 0,
+          background: "white",
+        }}
+      >
+        <h2 className="text-center">Match's Name</h2>
+      </Header>
+      <Content
+        style={{
+          background: "white",
+        }}
+      ></Content>
+      <Footer
+        style={{
+          position: "sticky",
+          bottom: 0,
+          background: "white",
+        }}
+      >
+        <Space.Compact
+          style={{
+            width: "100%",
+          }}
+        >
+          <Input placeholder="Send them an ice breaker!" allowClear />
+          <Button size="large" type="default" icon={<SendOutlined />} />
+        </Space.Compact>
+      </Footer>
+    </Layout>
   );
 };

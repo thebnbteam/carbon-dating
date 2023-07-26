@@ -1,6 +1,6 @@
 import { FingerPrintLogo } from "../../components";
-import { FaAngleDoubleDown } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { DownSquareOutlined } from "@ant-design/icons";
 
 export const CalibrationTopIntro = () => {
   return (
@@ -9,7 +9,7 @@ export const CalibrationTopIntro = () => {
         <FingerPrintLogo />
         <h2 className="text-center mx-10">now let's see your top 5!</h2>
         <Link to="/calibrationtopfive">
-          <FaAngleDoubleDown className="text-5xl" />
+          <DownSquareOutlined className="text-5xl" />
         </Link>
       </div>
     </>

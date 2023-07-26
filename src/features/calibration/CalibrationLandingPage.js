@@ -1,6 +1,6 @@
 import { FingerPrintLogo } from "../../components";
-import { FaAngleDoubleDown } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { DownSquareOutlined } from "@ant-design/icons";
 
 export const CalibrationLandingPage = () => {
   return (
@@ -11,7 +11,7 @@ export const CalibrationLandingPage = () => {
           let's find out more about YOU
         </h3>
         <Link to="/calibrationquestions">
-          <FaAngleDoubleDown className="text-5xl" />
+          <DownSquareOutlined className="text-5xl" />
         </Link>
       </div>
     </>

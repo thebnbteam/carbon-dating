@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FingerPrintLogo } from "../../components";
-import { FaAngleDoubleLeft, FaAngleDoubleRight } from "react-icons/fa";
 import { categories } from "../../categoriesconstant";
 import { useNavigate } from "react-router";
+import { LeftSquareOutlined, RightSquareOutlined } from "@ant-design/icons";
 
 export const CalibrationTopFive = () => {
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ export const CalibrationTopFive = () => {
         >
           <h2>{categoriesArray[topFiveIndex]}</h2>
           <div className="w-full flex justify-center">
-            <FaAngleDoubleRight
+            <RightSquareOutlined
               onClick={() => nextTopFive()}
               className="text-5xl"
             />
@@ -45,7 +45,7 @@ border-solid border-white	"
         >
           <h2>{categoriesArray[topFiveIndex + 1]}</h2>
           <div className="w-full flex justify-center">
-            <FaAngleDoubleLeft
+            <LeftSquareOutlined
               onClick={() => nextTopFive()}
               className="text-5xl"
             />

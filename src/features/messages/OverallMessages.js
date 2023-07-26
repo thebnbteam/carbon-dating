@@ -1,39 +1,42 @@
 import { MatchesDisplayBox } from "../../components";
-import { Input } from "antd";
-import { FaRegHeart } from "react-icons/fa";
+import { Input, Space, Card, Row, Col } from "antd";
+
+const { Search } = Input;
+
 export const OverallMessages = () => {
   const lastMessage = "Hey thats hilarious!";
 
   return (
     <>
       <div>
-        <div>
-          <h2 className="text-center">Messages</h2>
-          <Input size="large" placeholder="Search user" />
-        </div>
-        <div className="my-4">
-          <h3 className="text-xl my-3 ">Activities</h3>
-          <div className="flex border border-solid border-white p-2 rounded-md">
-            <MatchesDisplayBox />
-            <MatchesDisplayBox />
-            <MatchesDisplayBox />
-            <MatchesDisplayBox />
-          </div>
-        </div>
-        <div>
-          <h3 className="text-xl my-3">Messages</h3>
-          <div className="flex flex-col border border-solid border-white p-1 rounded-md">
-            <div className="flex">
-              <div className="w-[30%]">
-                <MatchesDisplayBox />
-              </div>
-              <div className="bg-white w-full my-1 border-white p-2 rounded-md flex justify-between">
-                {lastMessage ? lastMessage : "Has not responded"}
-                <FaRegHeart className="my-1 text-red" />
-              </div>
-            </div>
-          </div>
-        </div>
+        <h2 className="text-center">Messages</h2>
+        <Search size="large" placeholder="Search matches" allowClear />
+        <Card title="Activities" className="mt-10">
+          {/* Map over the matches */}
+          <Space size={[10]} wrap>
+            <MatchesDisplayBox size={100} />
+            <MatchesDisplayBox size={100} />
+            <MatchesDisplayBox size={100} />
+            <MatchesDisplayBox size={100} />
+          </Space>
+        </Card>
+        <Card title="Messages" className="mt-10">
+          <Row align="middle">
+            <Col flex="100px">
+              <MatchesDisplayBox size={100} />
+            </Col>
+            <Col flex="auto">
+              <Card
+                title="Latest Message"
+                style={{
+                  width: "auto",
+                }}
+              >
+                <p>Hey how is it going?</p>
+              </Card>
+            </Col>
+          </Row>
+        </Card>
       </div>
     </>
   );

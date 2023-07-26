@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FingerPrintLogo } from "../../components";
-import { FaAngleDoubleDown } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { DownSquareOutlined } from "@ant-design/icons";
 
 export const CalibrationIntroPage = () => {
   const [slideIndex, setSlideIndex] = useState(0);
@@ -27,7 +27,7 @@ export const CalibrationIntroPage = () => {
           {introQuote[slideIndex]}
         </h3>
         {slideIndex < 3 ? (
-          <FaAngleDoubleDown
+          <DownSquareOutlined
             onClick={() => {
               slideClick();
             }}
@@ -35,7 +35,7 @@ export const CalibrationIntroPage = () => {
           />
         ) : (
           <Link to="/calibrationcategories">
-            <FaAngleDoubleDown className="text-5xl" />
+            <DownSquareOutlined className="text-5xl" />
           </Link>
         )}
       </div>

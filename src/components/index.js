@@ -7,6 +7,7 @@ import { ProfilePictureBox } from "./ProfilePictureBox";
 import { ProfileTextBox } from "./ProfileTextBox";
 import { MatchesDisplayBox } from "./MatchesDisplayBox";
 import { TopFiveDisplayed } from "./TopFiveDisplayed";
+import { SubmitButton } from "./SubmitButton";
 
 export {
   FingerPrintLogo,
@@ -18,4 +19,5 @@ export {
   ProfileTextBox,
   MatchesDisplayBox,
   TopFiveDisplayed,
+  SubmitButton,
 };
