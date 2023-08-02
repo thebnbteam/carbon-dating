@@ -1,35 +1,47 @@
-import React, { useState } from "react";
-import { FingerPrintLogo, LandingButtons, TextInput } from "../components";
+import React from "react";
+import { FingerPrintLogo } from "../components";
 import { Button, Form, Input } from "antd";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
+import { useUserAuth } from "../context/UserAuthContext";
 
-export const LoginPage = () => {
-  const [newUser, setNewUser] = useState(false);
+export const LoginPage = ({ openNotification }) => {
+  const [form] = Form.useForm();
+  const navigate = useNavigate();
+  const { logIn, googleSignIn } = useUserAuth();
+  const signIn = async () => {
+    try {
+      await logIn(form.getFieldsValue().email, form.getFieldsValue().password);
+      openNotification("success");
+      navigate("/profilepage");
+    } catch (err) {
+      openNotification("error", err.message);
+    }
+  };
 
   return (
     <div className="mt-6 flex flex-col justify-center items-center gap-5">
       <FingerPrintLogo />
+      <h2 className="text-center">carbon</h2>
+      <h2 className="text-center">dating</h2>
       <Form
+        form={form}
         name="normal_login"
         className="login-form"
-        initialValues={{
-          remember: true,
-        }}
         style={{
           maxWidth: 600,
         }}
       >
         <Form.Item
-          name="username"
+          name="email"
           rules={[
             {
               required: true,
-              message: "Please put your username!",
+              message: "Please put your email!",
             },
           ]}
         >
-          <Input prefix={<UserOutlined />} placeholder="Username" />
+          <Input prefix={<UserOutlined />} placeholder="Email" type="email" />
         </Form.Item>
 
         <Form.Item
@@ -52,7 +64,13 @@ export const LoginPage = () => {
           </Link>
         </Form.Item>
         <div className="flex flex-col">
-          <Button type="default" htmlType="submit">
+          <Button
+            type="default"
+            htmlType="submit"
+            onClick={() => {
+              signIn();
+            }}
+          >
             Login
           </Button>
           <div className="flex justify-center">

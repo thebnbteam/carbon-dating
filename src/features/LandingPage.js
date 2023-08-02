@@ -1,5 +1,6 @@
-import { FingerPrintLogo, LandingButtons } from "../components";
+import { FingerPrintLogo } from "../components";
 import { Link } from "react-router-dom";
+import { Button } from "antd";
 
 export const LandingPage = () => {
   return (
@@ -7,12 +8,19 @@ export const LandingPage = () => {
       <h2 className="text-center">carbon</h2>
       <h2 className="text-center">dating</h2>
       <FingerPrintLogo />
-      <Link to="/loginpage">
-        <div className="flex flex-col items-center gap-4">
-          <LandingButtons text="l o g i n" />
-          <LandingButtons text="create account" />
-        </div>
-      </Link>
+
+      <div className="flex flex-col items-center gap-4">
+        <Link to="/loginpage">
+          <Button type="default" size="large">
+            l o g i n
+          </Button>
+        </Link>
+        <Link to="/signuppage">
+          <Button type="default" size="large">
+            make account
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 };

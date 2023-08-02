@@ -1,13 +1,31 @@
-import React from "react";
-import { Form, Input, Checkbox } from "antd";
-import { SubmitButton } from "../components";
+import React, { useState } from "react";
+import { Form, Input, Checkbox, Button } from "antd";
+import { SubmitButton, FingerPrintLogo } from "../components";
+import { Link, useNavigate } from "react-router-dom";
+import { useUserAuth } from "../context/UserAuthContext";
 
-export const SignUpPage = () => {
+export const SignUpPage = ({ openNotification }) => {
+  const navigate = useNavigate();
+  const [userAuthObj, setUserAuthObj] = useState({});
   const [form] = Form.useForm();
-  function onSubmit() {}
+  const { signUp } = useUserAuth();
+
+  const signIn = async () => {
+    try {
+      await signUp(form.getFieldsValue().email, form.getFieldsValue().password);
+      setUserAuthObj(form.getFieldValue());
+      openNotification("success");
+      navigate("/loginpage");
+    } catch (err) {
+      openNotification("error", err.message);
+    }
+  };
 
   return (
     <div className="mt-6 flex flex-col justify-center items-center gap-5">
+      <h2 className="text-center">carbon</h2>
+      <h2 className="text-center">dating</h2>
+      <FingerPrintLogo />
       <Form form={form} name="validateOnly">
         <Form.Item
           name="email"
@@ -32,7 +50,8 @@ export const SignUpPage = () => {
           rules={[
             {
               required: true,
-              message: "Please input your password!",
+              message: "Your password needs to be more than 6 characters",
+              min: 6,
             },
           ]}
           hasFeedback
@@ -83,9 +102,12 @@ export const SignUpPage = () => {
           </Checkbox>
         </Form.Item>
         <Form.Item className="flex justify-center">
-          <SubmitButton form={form} />
+          <SubmitButton form={form} onSubmit={signIn} />
         </Form.Item>
       </Form>
+      <Link to="/loginpage">
+        <Button type="default">Back to login</Button>
+      </Link>
     </div>
   );
 };

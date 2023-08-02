@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button, Form } from "antd";
 
-export const SubmitButton = ({ form }) => {
+export const SubmitButton = ({ form, onSubmit }) => {
   const values = Form.useWatch([], form);
   const [submitStatus, setsubmitStatus] = useState(false);
   useEffect(() => {
@@ -23,7 +23,9 @@ export const SubmitButton = ({ form }) => {
       disabled={!submitStatus}
       type="default"
       htmlType="button"
-      onClick={() => {}}
+      onClick={() => {
+        onSubmit();
+      }}
     >
       Register
     </Button>
