@@ -1,21 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 import { FingerPrintLogo } from "../components";
-import { Button, Form, Input } from "antd";
+import { Button, Form, Input, Alert } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useUserAuth } from "../context/UserAuthContext";
 
-export const LoginPage = ({ openNotification }) => {
+export const LoginPage = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  const { logIn, googleSignIn } = useUserAuth();
+  const { logIn, googleSignIn, authNotificationHandler, authNotifications } =
+    useUserAuth();
+
   const signIn = async () => {
     try {
       await logIn(form.getFieldsValue().email, form.getFieldsValue().password);
-      openNotification("success");
+      authNotificationHandler(
+        "success",
+        "Success",
+        "You have successfully logged in!",
+        true
+      );
       navigate("/profilepage");
     } catch (err) {
-      openNotification("error", err.message);
+      authNotificationHandler("error", "Error", err.message);
     }
   };
 
@@ -24,6 +31,18 @@ export const LoginPage = ({ openNotification }) => {
       <FingerPrintLogo />
       <h2 className="text-center">carbon</h2>
       <h2 className="text-center">dating</h2>
+      {authNotifications.type === "error" ? (
+        <Alert
+          type={authNotifications.type}
+          message={authNotifications.message}
+          description={authNotifications.description}
+          showIcon
+          closable
+          style={{
+            margin: 10,
+          }}
+        />
+      ) : null}
       <Form
         form={form}
         name="normal_login"

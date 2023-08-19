@@ -1,54 +1,132 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
 } from "firebase/auth";
 
-import { auth } from "../firebase/firebase-config";
-
-import { useDispatch, useSelector } from "react-redux";
-import { setCurrentUser } from "../redux/slices/userSlice";
+import { auth, userCollectionRef } from "../firebase/firebase-config";
+import { getDocs } from "firebase/firestore";
 
 const userAuthContext = createContext();
 
 export function UserAuthContextProvider({ children }) {
-  const dispatch = useDispatch();
-  const { currentUser } = useSelector((state) => state.user);
+  const [currentUser, setCurrentUser] = useState({});
+  const [authNotifications, setAuthNotifications] = useState({
+    type: "",
+    message: "",
+    description: "",
+  });
+  const [userAuthObj, setUserAuthObj] = useState({});
+  const [bioData, setBioData] = useState();
+  const [isError, setIsError] = useState(false);
 
-  function signUp(email, password) {
-    return createUserWithEmailAndPassword(auth, email, password);
-  }
+  const signUp = async (email, password) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+      console.log("User signed up:", user.email);
+      return user;
+    } catch (error) {
+      console.error("Sign-up error:", error.message);
+      throw error;
+    }
+  };
 
-  function logIn(email, password) {
-    return signInWithEmailAndPassword(auth, email, password);
-  }
+  const logIn = async (email, password) => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+      console.log("User logged in:", user.email);
+      return user;
+    } catch (error) {
+      console.error("Log-in error:", error.message);
+      throw error;
+    }
+  };
 
-  function logOut() {
-    return signOut(auth);
-  }
+  const logOut = async () => {
+    try {
+      await signOut(auth);
+      setCurrentUser(null);
+      console.log("User logged out");
+    } catch (error) {
+      console.error("Log-out error:", error.message);
+      throw error;
+    }
+  };
 
-  function googleSignIn() {
-    const googleAuthProvider = new GoogleAuthProvider();
-    return signInWithPopup(auth, googleAuthProvider);
-  }
+  const googleSignIn = async () => {
+    try {
+      const googleAuthProvider = new GoogleAuthProvider();
+      const userCredential = await signInWithPopup(auth, googleAuthProvider);
+      const user = userCredential.user;
+      console.log("User signed in with Google:", user.email);
+      return user;
+    } catch (error) {
+      console.error("Google sign-in error:", error.message);
+      throw error;
+    }
+  };
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log("Auth", user);
-      dispatch(setCurrentUser(user));
-    });
-    return () => {
-      unsubscribe();
-    };
-  }, []);
+  const authNotificationHandler = (type, message, description, state) => {
+    setAuthNotifications((prev) => ({
+      ...prev,
+      type: type,
+      message: message,
+      description: description,
+      state: true,
+    }));
+  };
+
+  const getBioData = async () => {
+    try {
+      const data = await getDocs(userCollectionRef);
+      const filteredData = data.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id,
+      }));
+      setBioData(filteredData);
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+
+  const closeNotification = (type) => {
+    setAuthNotifications((prev) => ({
+      ...prev,
+      type: null,
+      state: false,
+    }));
+  };
 
   return (
     <userAuthContext.Provider
-      value={{ currentUser, logIn, logOut, signUp, googleSignIn }}
+      value={{
+        currentUser,
+        setCurrentUser,
+        logIn,
+        logOut,
+        signUp,
+        googleSignIn,
+        authNotificationHandler,
+        authNotifications,
+        setUserAuthObj,
+        setAuthNotifications,
+        closeNotification,
+        getBioData,
+      }}
     >
       {children}
     </userAuthContext.Provider>

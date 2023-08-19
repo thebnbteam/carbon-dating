@@ -19,14 +19,14 @@ export const SwipeLandingPage = () => {
     <>
       <div className="flex flex-col mx-4 mt-10 gap-6 items-center">
         {!profileExpanded ? (
-          <DownSquareOutlined
+          <UpSquareOutlined
             onClick={() => {
               profileExpander();
             }}
             className="text-5xl"
           />
         ) : (
-          <UpSquareOutlined
+          <DownSquareOutlined
             onClick={() => {
               profileExpander();
             }}

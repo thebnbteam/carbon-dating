@@ -27,7 +27,7 @@ export const CalibrationCategories = () => {
     }
   }
 
-  function nextArrayIndex() {
+  function nextArrayIndex(keep) {
     if (swipeArray < categories[categoriesArray[calibrationIndex]].length) {
       const swipingIndex = swipeArray + 1;
       setSwipeArray(swipingIndex);

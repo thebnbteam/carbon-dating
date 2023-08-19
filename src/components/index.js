@@ -1,5 +1,4 @@
 import { FingerPrintLogo } from "./FingerPrintLogo";
-import { StickyMenu } from "./StickyMenu";
 import { LandingButtons } from "./Button";
 import { TextInput } from "./TextInput";
 import { StickyShortcuts } from "./StickyShortcuts";
@@ -8,10 +7,11 @@ import { ProfileTextBox } from "./ProfileTextBox";
 import { MatchesDisplayBox } from "./MatchesDisplayBox";
 import { TopFiveDisplayed } from "./TopFiveDisplayed";
 import { SubmitButton } from "./SubmitButton";
+import { MobileMenu } from "./MobileMenu";
+import { Spinner } from "./Spinner";
 
 export {
   FingerPrintLogo,
-  StickyMenu,
   LandingButtons,
   TextInput,
   StickyShortcuts,
@@ -20,4 +20,6 @@ export {
   MatchesDisplayBox,
   TopFiveDisplayed,
   SubmitButton,
+  MobileMenu,
+  Spinner,
 };

@@ -1,10 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router";
-import { useSelector } from "react-redux";
-
+import { useUserAuth } from "../context/UserAuthContext";
 const RouteProtector = ({ children }) => {
   const navigate = useNavigate();
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser } = useUserAuth();
 
   if (!currentUser) {
     navigate("/");

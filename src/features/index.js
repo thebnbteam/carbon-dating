@@ -15,6 +15,7 @@ import { MatchFound } from "./matches/MatchFound";
 import { DMScreen } from "./messages/DMScreen";
 import { OverallMessages } from "./messages/OverallMessages";
 import { SignUpPage } from "./SignUpPage";
+import { PageNotFound } from "./PageNotFound";
 
 export {
   LandingPage,
@@ -34,4 +35,5 @@ export {
   DMScreen,
   OverallMessages,
   SignUpPage,
+  PageNotFound,
 };
