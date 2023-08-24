@@ -1,9 +1,11 @@
 import { ProfilePictureBox } from "../../components";
 import { Button, Alert } from "antd";
 import { useUserAuth } from "../../context/UserAuthContext";
+import { useNavigate } from "react-router";
 
 export const ProfilePage = () => {
   const { authNotifications, closeNotification } = useUserAuth();
+  const navigate = useNavigate();
 
   return (
     <>
@@ -28,8 +30,15 @@ export const ProfilePage = () => {
           <ProfilePictureBox />
         </div>
         <div className="mt-10 flex flex-col gap-3">
-          <Button size="large">Calibrate Again</Button>
-          <Button size="large">Top 5</Button>
+          <Button size="large" onClick={() => navigate("/recalibrationpage")}>
+            Calibrate Again
+          </Button>
+          <Button
+            size="large"
+            onClick={() => navigate("/calibrationquestions")}
+          >
+            Edit Personal Info
+          </Button>
         </div>
       </div>
     </>

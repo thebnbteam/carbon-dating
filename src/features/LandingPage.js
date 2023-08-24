@@ -8,7 +8,7 @@ export const LandingPage = () => {
 
   return (
     <div className="flex flex-col items-center gap-4 my-[20%]">
-      {authNotifications.type && (
+      {authNotifications.state === true ? (
         <Alert
           onClose={() => {
             closeNotification();
@@ -22,7 +22,7 @@ export const LandingPage = () => {
             margin: 10,
           }}
         />
-      )}
+      ) : null}
       <h2 className="text-center">carbon</h2>
       <h2 className="text-center">dating</h2>
       <FingerPrintLogo />

@@ -8,7 +8,11 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 
-import { auth, userCollectionRef } from "../firebase/firebase-config";
+import {
+  auth,
+  userCollectionRef,
+  allUserData,
+} from "../firebase/firebase-config";
 import { getDocs } from "firebase/firestore";
 
 const userAuthContext = createContext();
@@ -20,7 +24,7 @@ export function UserAuthContextProvider({ children }) {
     message: "",
     description: "",
   });
-  const [userAuthObj, setUserAuthObj] = useState({});
+  const [userData, setUserData] = useState();
   const [bioData, setBioData] = useState();
   const [isError, setIsError] = useState(false);
 
@@ -48,7 +52,7 @@ export function UserAuthContextProvider({ children }) {
         password
       );
       const user = userCredential.user;
-      console.log("User logged in:", user.email);
+      console.log("User logged in:", user.email, user.uid);
       return user;
     } catch (error) {
       console.error("Log-in error:", error.message);
@@ -86,7 +90,7 @@ export function UserAuthContextProvider({ children }) {
       type: type,
       message: message,
       description: description,
-      state: true,
+      state: state,
     }));
   };
 
@@ -106,7 +110,7 @@ export function UserAuthContextProvider({ children }) {
   const closeNotification = (type) => {
     setAuthNotifications((prev) => ({
       ...prev,
-      type: null,
+      type: "",
       state: false,
     }));
   };
@@ -122,10 +126,11 @@ export function UserAuthContextProvider({ children }) {
         googleSignIn,
         authNotificationHandler,
         authNotifications,
-        setUserAuthObj,
         setAuthNotifications,
         closeNotification,
         getBioData,
+        userData,
+        setUserData,
       }}
     >
       {children}

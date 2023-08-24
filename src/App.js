@@ -4,10 +4,12 @@ import { useUserAuth } from "./context/UserAuthContext";
 import { routes } from "./routes";
 import { MobileMenu, Spinner } from "./components";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "./firebase/firebase-config";
+import { auth, db } from "./firebase/firebase-config";
+import { collection } from "firebase/firestore";
 
 function App() {
-  const { currentUser, getBioData, setCurrentUser } = useUserAuth();
+  const { currentUser, setCurrentUser, authNotificationHandler, setUserData } =
+    useUserAuth();
   const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
@@ -15,18 +17,18 @@ function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user && user.uid) {
+        console.log("user logged in");
         setCurrentUser({ email: user.email, uid: user.uid });
+        const userCollectionRef = collection(db, user.uid);
+        setUserData(userCollectionRef);
         setIsLoading(false);
-        // getBioData().then(() => {
-        //   setIsLoading(false);
-        // });
       } else {
         setCurrentUser(null);
         setIsLoading(false);
         navigate("/");
+        authNotificationHandler("error", "Error", "Please Login!", true);
       }
     });
-    console.log(currentUser);
     return () => unsubscribe();
   }, []);
 

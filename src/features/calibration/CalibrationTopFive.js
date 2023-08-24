@@ -3,12 +3,17 @@ import { FingerPrintLogo } from "../../components";
 import { categories } from "../../categoriesconstant";
 import { useNavigate } from "react-router";
 import { LeftSquareOutlined, RightSquareOutlined } from "@ant-design/icons";
+import { allUserData } from "../../firebase/firebase-config";
+import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { useUserAuth } from "../../context/UserAuthContext";
 
 export const CalibrationTopFive = () => {
   const navigate = useNavigate();
+  const { userData } = useUserAuth();
   const [topFiveIndex, setTopFiveIndex] = useState(0);
-  const [topFiveState, setTopFiveState] = useState(false);
   const categoriesArray = Object.keys(categories);
+  let firstTopFive = categoriesArray[topFiveIndex];
+  let secondTopFive = categoriesArray[topFiveIndex + 1];
 
   function nextTopFive() {
     if (topFiveIndex < categoriesArray.length) {
@@ -20,6 +25,20 @@ export const CalibrationTopFive = () => {
     }
   }
 
+  async function addTopFive(selection) {
+    const docRef = doc(userData, "topFive");
+    try {
+      const docSnapshot = await getDoc(docRef);
+      if (!docSnapshot.exists()) {
+        await setDoc(docRef, { topFive: selection });
+      } else {
+        await updateDoc(docRef, { topFive: arrayUnion(selection) });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   return (
     <>
       <div className="flex flex-col items-center gap-10">
@@ -28,10 +47,13 @@ export const CalibrationTopFive = () => {
           className="flex flex-col p-5 items-center border-2 rounded-lg
  border-solid	border-white"
         >
-          <h2>{categoriesArray[topFiveIndex]}</h2>
+          <h2>{firstTopFive}</h2>
           <div className="w-full flex justify-center">
             <RightSquareOutlined
-              onClick={() => nextTopFive()}
+              onClick={() => {
+                nextTopFive();
+                addTopFive(firstTopFive);
+              }}
               className="text-5xl"
             />
           </div>
@@ -43,10 +65,13 @@ export const CalibrationTopFive = () => {
           className="flex flex-col p-5 items-center border-2 rounded-lg
 border-solid border-white	"
         >
-          <h2>{categoriesArray[topFiveIndex + 1]}</h2>
+          <h2>{secondTopFive}</h2>
           <div className="w-full flex justify-center">
             <LeftSquareOutlined
-              onClick={() => nextTopFive()}
+              onClick={() => {
+                nextTopFive();
+                addTopFive(secondTopFive);
+              }}
               className="text-5xl"
             />
           </div>

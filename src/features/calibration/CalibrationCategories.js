@@ -9,10 +9,15 @@ import {
   RightSquareOutlined,
 } from "@ant-design/icons";
 
+import { categoryLikes } from "../../firebase/firebase-config";
+import { setDoc, doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { useUserAuth } from "../../context/UserAuthContext";
+
 export const CalibrationCategories = () => {
-  const [calibrationIndex, setCalibrationIndex] = useState(0);
+  const { userData } = useUserAuth();
+  const [mainCategoryIndex, setMainCategoryIndex] = useState(0);
   const [upClickState, setUpClickState] = useState(false);
-  const [swipeArray, setSwipeArray] = useState(0);
+  const [subCategoryIndex, setSubCategoryIndex] = useState(0);
   const categoriesArray = Object.keys(categories);
 
   function categoryExpander() {
@@ -21,31 +26,53 @@ export const CalibrationCategories = () => {
 
   function questionSkip() {
     setUpClickState(false);
-    if (calibrationIndex < categoriesArray.length) {
-      const newIndex = calibrationIndex + 1;
-      setCalibrationIndex(newIndex);
+    if (mainCategoryIndex < categoriesArray.length) {
+      const newIndex = mainCategoryIndex + 1;
+      setMainCategoryIndex(newIndex);
+      setSubCategoryIndex(0);
     }
   }
 
-  function nextArrayIndex(keep) {
-    if (swipeArray < categories[categoriesArray[calibrationIndex]].length) {
-      const swipingIndex = swipeArray + 1;
-      setSwipeArray(swipingIndex);
+  function nextArrayIndex() {
+    if (
+      subCategoryIndex < categories[categoriesArray[mainCategoryIndex]].length
+    ) {
+      const swipingIndex = subCategoryIndex + 1;
+      setSubCategoryIndex(swipingIndex);
     }
 
     if (
-      swipeArray ==
-      categories[categoriesArray[calibrationIndex]].length - 1
+      subCategoryIndex ==
+      categories[categoriesArray[mainCategoryIndex]].length - 1
     ) {
       categoryExpander();
-      setCalibrationIndex(calibrationIndex + 1);
-      setSwipeArray(0);
+      setMainCategoryIndex(mainCategoryIndex + 1);
+      setSubCategoryIndex(0);
+    }
+  }
+
+  async function addCategory() {
+    const selectedCategory = categoriesArray[mainCategoryIndex];
+    const selectedSubCategory =
+      categories[categoriesArray[mainCategoryIndex]][subCategoryIndex];
+    const docRef = doc(userData, "categoryLikes");
+    try {
+      const docSnapshot = await getDoc(docRef);
+      if (!docSnapshot.exists()) {
+        await setDoc(docRef, { [selectedCategory]: [selectedSubCategory] });
+      } else {
+        await updateDoc(docRef, {
+          [selectedCategory]: arrayUnion(selectedSubCategory),
+        });
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 
   return (
     <>
-      {calibrationIndex === categoriesArray.length - 1 ? (
+      {mainCategoryIndex === categoriesArray.length - 1 ? (
         <CalibrationTopIntro />
       ) : (
         <div className="flex flex-col items-center gap-10">
@@ -69,7 +96,7 @@ export const CalibrationCategories = () => {
                 className="text-5xl"
               />
             )}
-            <h2>{categoriesArray[calibrationIndex]}</h2>
+            <h2>{categoriesArray[mainCategoryIndex]}</h2>
             {upClickState && (
               <>
                 <div className="flex justify-between w-full">
@@ -86,12 +113,17 @@ export const CalibrationCategories = () => {
                   <RightSquareOutlined
                     onClick={() => {
                       nextArrayIndex();
+                      addCategory();
                     }}
                     className="text-3xl"
                   />
                 </div>
                 <h2>
-                  {categories[categoriesArray[calibrationIndex]][swipeArray]}
+                  {
+                    categories[categoriesArray[mainCategoryIndex]][
+                      subCategoryIndex
+                    ]
+                  }
                 </h2>
               </>
             )}

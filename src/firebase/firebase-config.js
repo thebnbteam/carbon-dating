@@ -15,5 +15,6 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+export const allUserData = collection(db, "allUserData");
 export const userCollectionRef = collection(db, "userInfo");
 export const categoryLikes = collection(db, "categoryLikes");
