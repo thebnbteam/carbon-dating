@@ -6,14 +6,11 @@ import {
   signOut,
   GoogleAuthProvider,
   signInWithPopup,
+  onAuthStateChanged,
 } from "firebase/auth";
 
-import {
-  auth,
-  userCollectionRef,
-  allUserData,
-} from "../firebase/firebase-config";
-import { getDocs } from "firebase/firestore";
+import { auth, db } from "../firebase/firebase-config";
+import { collection } from "firebase/firestore";
 
 const userAuthContext = createContext();
 
@@ -25,8 +22,10 @@ export function UserAuthContextProvider({ children }) {
     description: "",
   });
   const [userData, setUserData] = useState();
-  const [bioData, setBioData] = useState();
-  const [isError, setIsError] = useState(false);
+  const [userInfo, setUserInfo] = useState();
+  const [categoryLikes, setCategoryLikes] = useState();
+  const [calibrationStatus, setCalibrationStatus] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   const signUp = async (email, password) => {
     try {
@@ -36,8 +35,7 @@ export function UserAuthContextProvider({ children }) {
         password
       );
       const user = userCredential.user;
-      console.log("User signed up:", user.email);
-      return user;
+      setCurrentUser({ email: user.email, uid: user.uid });
     } catch (error) {
       console.error("Sign-up error:", error.message);
       throw error;
@@ -52,8 +50,8 @@ export function UserAuthContextProvider({ children }) {
         password
       );
       const user = userCredential.user;
+      setCurrentUser({ email: user.email, uid: user.uid });
       console.log("User logged in:", user.email, user.uid);
-      return user;
     } catch (error) {
       console.error("Log-in error:", error.message);
       throw error;
@@ -94,19 +92,6 @@ export function UserAuthContextProvider({ children }) {
     }));
   };
 
-  const getBioData = async () => {
-    try {
-      const data = await getDocs(userCollectionRef);
-      const filteredData = data.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id,
-      }));
-      setBioData(filteredData);
-    } catch (err) {
-      console.log(err.message);
-    }
-  };
-
   const closeNotification = (type) => {
     setAuthNotifications((prev) => ({
       ...prev,
@@ -114,6 +99,21 @@ export function UserAuthContextProvider({ children }) {
       state: false,
     }));
   };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user && user.uid) {
+        setCurrentUser({ email: user.email, uid: user.uid });
+        const userCollectionRef = collection(db, user.uid);
+        setUserData(userCollectionRef);
+      } else {
+        setCurrentUser(null);
+        authNotificationHandler("error", "Error", "Please Login!", true);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [auth]);
 
   return (
     <userAuthContext.Provider
@@ -128,9 +128,16 @@ export function UserAuthContextProvider({ children }) {
         authNotifications,
         setAuthNotifications,
         closeNotification,
-        getBioData,
         userData,
         setUserData,
+        userInfo,
+        setUserInfo,
+        categoryLikes,
+        setCategoryLikes,
+        calibrationStatus,
+        setCalibrationStatus,
+        isLoading,
+        setIsLoading,
       }}
     >
       {children}

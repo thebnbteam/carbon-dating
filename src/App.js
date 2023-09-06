@@ -3,34 +3,43 @@ import { Routes, Route, useNavigate } from "react-router";
 import { useUserAuth } from "./context/UserAuthContext";
 import { routes } from "./routes";
 import { MobileMenu, Spinner } from "./components";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "./firebase/firebase-config";
-import { collection } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 
 function App() {
-  const { currentUser, setCurrentUser, authNotificationHandler, setUserData } =
-    useUserAuth();
-  const [isLoading, setIsLoading] = useState(true);
-
+  const {
+    userData,
+    currentUser,
+    isLoading,
+    setIsLoading,
+    setUserInfo,
+    setCategoryLikes,
+  } = useUserAuth();
   const navigate = useNavigate();
 
+  const checkUserInfo = async () => {
+    const userInfoSnapShot = await getDoc(doc(userData, "userInfo"));
+    const categorySnapShot = await getDoc(doc(userData, "categoryLikes"));
+    console.log("checking userinfo");
+    if (categorySnapShot.exists()) {
+      setCategoryLikes(categorySnapShot.data());
+      navigate("/profilepage");
+    } else if (userInfoSnapShot.exists()) {
+      setUserInfo(userInfoSnapShot.data());
+      navigate("/calibrationintro");
+    } else {
+      navigate("/calibratelandingpage");
+    }
+  };
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user && user.uid) {
-        console.log("user logged in");
-        setCurrentUser({ email: user.email, uid: user.uid });
-        const userCollectionRef = collection(db, user.uid);
-        setUserData(userCollectionRef);
-        setIsLoading(false);
-      } else {
-        setCurrentUser(null);
-        setIsLoading(false);
-        navigate("/");
-        authNotificationHandler("error", "Error", "Please Login!", true);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
+    if (currentUser) {
+      checkUserInfo();
+      setIsLoading(false);
+    } else {
+      setIsLoading(false);
+      navigate("/");
+    }
+  }, [currentUser]);
 
   if (isLoading) {
     return <Spinner />;

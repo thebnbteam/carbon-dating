@@ -20,7 +20,6 @@ export const LoginPage = () => {
         "You have successfully logged in!",
         true
       );
-      navigate("/profilepage");
     } catch (err) {
       authNotificationHandler("error", "Error", err.message);
     }

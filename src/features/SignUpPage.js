@@ -18,8 +18,7 @@ export const SignUpPage = () => {
         "Success",
         "You have successfully signed up!"
       );
-      setUserAuthObj(form.getFieldValue());
-      navigate("/loginpage");
+      navigate("/calibratelandingpage");
     } catch (err) {
       authNotificationHandler("error", "Error", err.message);
     }

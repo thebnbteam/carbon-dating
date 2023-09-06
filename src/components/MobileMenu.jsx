@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MenuOutlined } from "@ant-design/icons";
 import { Drawer, Button, Space } from "antd";
 import { useNavigate } from "react-router";
@@ -7,8 +7,9 @@ import { useUserAuth } from "../context/UserAuthContext";
 export function MobileMenu() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const { logOut, authNotificationHandler } = useUserAuth();
-
+  const { logOut, authNotificationHandler, userInfo, categoryLikes } =
+    useUserAuth();
+  const [calibrationStatus, setCalibrationStatus] = useState("");
   const showDrawer = () => {
     setOpen(true);
   };
@@ -30,6 +31,15 @@ export function MobileMenu() {
       authNotificationHandler("error", "Error", err.message);
     }
   };
+  useEffect(() => {
+    if (userInfo == undefined && categoryLikes == undefined) {
+      setCalibrationStatus("notDone");
+    } else if (userInfo && categoryLikes == undefined) {
+      setCalibrationStatus("partial");
+    } else {
+      setCalibrationStatus("done");
+    }
+  }, [userInfo, categoryLikes]);
 
   return (
     <>
@@ -41,42 +51,62 @@ export function MobileMenu() {
       />
       <Drawer width={300} onClose={onClose} open={open}>
         <Space direction="vertical" style={{ width: "100%" }}>
-          <Button
-            block
-            onClick={() => {
-              navigate("/profilepage");
-              onClose();
-            }}
-          >
-            Profile
-          </Button>
-          <Button
-            block
-            onClick={() => {
-              navigate("/swipelandingpage");
-              onClose();
-            }}
-          >
-            Swiping
-          </Button>
-          <Button
-            block
-            onClick={() => {
-              navigate("/matchespage");
-              onClose();
-            }}
-          >
-            Matches
-          </Button>
-          <Button
-            block
-            onClick={() => {
-              navigate("/overallmessages");
-              onClose();
-            }}
-          >
-            Messages
-          </Button>
+          {calibrationStatus === "notDone" ||
+          calibrationStatus === "partial" ? (
+            <Button
+              block
+              onClick={() => {
+                navigate(
+                  calibrationStatus === "notDone"
+                    ? "/calibratelandingpage"
+                    : "/calibrationintro"
+                );
+                onClose();
+              }}
+            >
+              Please Finish Your Calibration!
+            </Button>
+          ) : null}
+          {calibrationStatus == "done" ? (
+            <>
+              <Button
+                block
+                onClick={() => {
+                  navigate("/profilepage");
+                  onClose();
+                }}
+              >
+                Profile Page
+              </Button>
+              <Button
+                block
+                onClick={() => {
+                  navigate("/swipelandingpage");
+                  onClose();
+                }}
+              >
+                Swiping
+              </Button>
+              <Button
+                block
+                onClick={() => {
+                  navigate("/matchespage");
+                  onClose();
+                }}
+              >
+                Matches
+              </Button>
+              <Button
+                block
+                onClick={() => {
+                  navigate("/overallmessages");
+                  onClose();
+                }}
+              >
+                Messages
+              </Button>
+            </>
+          ) : null}
           <Button
             block
             onClick={() => {
