@@ -9,6 +9,7 @@ import { TopFiveDisplayed } from "./TopFiveDisplayed";
 import { SubmitButton } from "./SubmitButton";
 import { MobileMenu } from "./MobileMenu";
 import { Spinner } from "./Spinner";
+import { ImageCarousel } from "./ImageCarousel";
 
 export {
   FingerPrintLogo,
@@ -22,4 +23,5 @@ export {
   SubmitButton,
   MobileMenu,
   Spinner,
+  ImageCarousel,
 };

@@ -19,7 +19,6 @@ function App() {
   const checkUserInfo = async () => {
     const userInfoSnapShot = await getDoc(doc(userData, "userInfo"));
     const categorySnapShot = await getDoc(doc(userData, "categoryLikes"));
-    console.log("checking userinfo");
     if (categorySnapShot.exists()) {
       setCategoryLikes(categorySnapShot.data());
       navigate("/profilepage");

@@ -1,0 +1,69 @@
+import React from "react";
+import { Carousel, Image, message, Button, Space } from "antd";
+import { useUserAuth } from "../context/UserAuthContext";
+import { Spinner } from "./Spinner";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+
+export const ImageCarousel = ({ pickProfilePicture }) => {
+  const { uploadedPictures, userData } = useUserAuth();
+
+  if (!uploadedPictures) {
+    return <Spinner />;
+  }
+
+  const deletePicture = async (picturePath) => {
+    try {
+      const docRef = doc(userData, "pictures");
+      const docSnapshot = await getDoc(docRef);
+
+      if (docSnapshot.exists()) {
+        const existingPictures = docSnapshot.data().pictures || [];
+        const updatedPictures = existingPictures.filter(
+          (existingPicture) => existingPicture.path !== picturePath
+        );
+        await updateDoc(docRef, {
+          pictures: updatedPictures,
+        });
+        message.success("Image deleted successfully.", 2);
+      }
+    } catch (error) {
+      console.log(error);
+      message.error("Error deleting image", 2);
+    }
+  };
+
+  return (
+    <>
+      <Carousel dotPosition="top">
+        {uploadedPictures.map((pic) => (
+          <div>
+            <Image
+              height={200}
+              width={"100%"}
+              src={pic.url}
+              key={pic.id}
+              path={pic.path}
+            />
+            <Space>
+              <Button
+                onClick={() => {
+                  pickProfilePicture(pic);
+                }}
+              >
+                Make it your profile!
+              </Button>
+              <Button
+                onClick={() => {
+                  deletePicture(pic.path);
+                }}
+                danger
+              >
+                Delete
+              </Button>
+            </Space>
+          </div>
+        ))}
+      </Carousel>
+    </>
+  );
+};

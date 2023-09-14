@@ -9,8 +9,9 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 
-import { auth, db } from "../firebase/firebase-config";
+import { auth, db, storage } from "../firebase/firebase-config";
 import { collection } from "firebase/firestore";
+import { ref } from "firebase/storage";
 
 const userAuthContext = createContext();
 
@@ -26,6 +27,9 @@ export function UserAuthContextProvider({ children }) {
   const [categoryLikes, setCategoryLikes] = useState();
   const [calibrationStatus, setCalibrationStatus] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [imageUpload, setImageUpload] = useState(null);
+  const [imageUrls, setImageUrls] = useState([]);
+  const [uploadedPictures, setUploadedPictures] = useState([]);
 
   const signUp = async (email, password) => {
     try {
@@ -138,6 +142,12 @@ export function UserAuthContextProvider({ children }) {
         setCalibrationStatus,
         isLoading,
         setIsLoading,
+        imageUpload,
+        setImageUpload,
+        imageUrls,
+        setImageUrls,
+        uploadedPictures,
+        setUploadedPictures,
       }}
     >
       {children}
