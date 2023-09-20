@@ -9,12 +9,12 @@ import {
   RightSquareOutlined,
 } from "@ant-design/icons";
 
-import { categoryLikes } from "../../firebase/firebase-config";
 import { setDoc, doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { useUserAuth } from "../../context/UserAuthContext";
+import { dataCollection } from "../../firebase/firebase-config";
 
 export const CalibrationCategories = () => {
-  const { userData } = useUserAuth();
+  const { currentUser } = useUserAuth();
   const [mainCategoryIndex, setMainCategoryIndex] = useState(0);
   const [upClickState, setUpClickState] = useState(false);
   const [subCategoryIndex, setSubCategoryIndex] = useState(0);
@@ -55,14 +55,21 @@ export const CalibrationCategories = () => {
     const selectedCategory = categoriesArray[mainCategoryIndex];
     const selectedSubCategory =
       categories[categoriesArray[mainCategoryIndex]][subCategoryIndex];
-    const docRef = doc(userData, "categoryLikes");
+    const userDocRef = doc(dataCollection, currentUser.uid);
+
     try {
-      const docSnapshot = await getDoc(docRef);
+      const docSnapshot = await getDoc(userDocRef);
+
       if (!docSnapshot.exists()) {
-        await setDoc(docRef, { [selectedCategory]: [selectedSubCategory] });
+        await setDoc(userDocRef, {
+          categoryLikes: {
+            [selectedCategory]: [selectedSubCategory],
+          },
+        });
       } else {
-        await updateDoc(docRef, {
-          [selectedCategory]: arrayUnion(selectedSubCategory),
+        await updateDoc(userDocRef, {
+          [`categoryLikes.${selectedCategory}`]:
+            arrayUnion(selectedSubCategory),
         });
       }
     } catch (error) {

@@ -3,13 +3,13 @@ import { FingerPrintLogo } from "../../components";
 import { categories } from "../../categoriesconstant";
 import { useNavigate } from "react-router";
 import { LeftSquareOutlined, RightSquareOutlined } from "@ant-design/icons";
-import { allUserData } from "../../firebase/firebase-config";
 import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { useUserAuth } from "../../context/UserAuthContext";
+import { dataCollection } from "../../firebase/firebase-config";
 
 export const CalibrationTopFive = () => {
   const navigate = useNavigate();
-  const { userData } = useUserAuth();
+  const { currentUser } = useUserAuth();
   const [topFiveIndex, setTopFiveIndex] = useState(0);
   const categoriesArray = Object.keys(categories);
   let firstTopFive = categoriesArray[topFiveIndex];
@@ -26,13 +26,13 @@ export const CalibrationTopFive = () => {
   }
 
   async function addTopFive(selection) {
-    const docRef = doc(userData, "topFive");
+    const userDocRef = doc(dataCollection, currentUser.uid);
     try {
-      const docSnapshot = await getDoc(docRef);
+      const docSnapshot = await getDoc(userDocRef);
       if (!docSnapshot.exists()) {
-        await setDoc(docRef, { topFive: selection });
+        await setDoc(userDocRef, { topFive: selection });
       } else {
-        await updateDoc(docRef, { topFive: arrayUnion(selection) });
+        await updateDoc(userDocRef, { topFive: arrayUnion(selection) });
       }
     } catch (error) {
       console.log(error);

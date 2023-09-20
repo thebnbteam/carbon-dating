@@ -6,10 +6,11 @@ import { useUserAuth } from "../context/UserAuthContext";
 
 export function MobileMenu() {
   const [open, setOpen] = useState(false);
+  const [calibrationStatus, setCalibrationStatus] = useState("");
   const navigate = useNavigate();
   const { logOut, authNotificationHandler, userInfo, categoryLikes } =
     useUserAuth();
-  const [calibrationStatus, setCalibrationStatus] = useState("");
+
   const showDrawer = () => {
     setOpen(true);
   };
@@ -31,6 +32,7 @@ export function MobileMenu() {
       authNotificationHandler("error", "Error", err.message);
     }
   };
+
   useEffect(() => {
     if (userInfo == undefined && categoryLikes == undefined) {
       setCalibrationStatus("notDone");

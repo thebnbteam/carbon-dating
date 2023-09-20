@@ -3,21 +3,36 @@ import { bioQuestions } from "../../bioquestionconstant";
 import { Link } from "react-router-dom";
 import { Form, Input } from "antd";
 import { SubmitButton } from "../../components";
-import { setDoc, doc } from "firebase/firestore";
+import { setDoc, doc, getDoc, updateDoc } from "firebase/firestore";
 import { useUserAuth } from "../../context/UserAuthContext";
+import { dataCollection } from "../../firebase/firebase-config";
 
 export const CalibrationQuestionsPage = () => {
   const [form] = Form.useForm();
-  const { userData } = useUserAuth();
+  const { currentUser } = useUserAuth();
 
   const bioSubmit = async () => {
+    const filledInfo = form.getFieldsValue();
     try {
-      await setDoc(doc(userData, "userInfo"), form.getFieldsValue(), {
-        merge: true,
-      });
-      console.log("Data added successfully");
+      const userDocRef = doc(dataCollection, currentUser.uid);
+      const docSnapshot = await getDoc(userDocRef);
+
+      if (docSnapshot.exists()) {
+        const existingData = docSnapshot.data();
+        const updatedData = {
+          ...existingData,
+          userInfo: filledInfo,
+        };
+
+        await updateDoc(userDocRef, { userInfo: updatedData.userInfo });
+
+        console.log("UserInfo updated successfully");
+      } else {
+        await setDoc(userDocRef, { userInfo: filledInfo });
+        console.log("Data added successfully");
+      }
     } catch (err) {
-      console.log(err.message);
+      console.error(err.message);
     }
   };
 

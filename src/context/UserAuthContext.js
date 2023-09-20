@@ -9,9 +9,8 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 
-import { auth, db, storage } from "../firebase/firebase-config";
-import { collection } from "firebase/firestore";
-import { ref } from "firebase/storage";
+import { auth, db, dataCollection } from "../firebase/firebase-config";
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 
 const userAuthContext = createContext();
 
@@ -66,6 +65,7 @@ export function UserAuthContextProvider({ children }) {
     try {
       await signOut(auth);
       setCurrentUser(null);
+      setUploadedPictures([]);
       console.log("User logged out");
     } catch (error) {
       console.error("Log-out error:", error.message);
@@ -104,12 +104,41 @@ export function UserAuthContextProvider({ children }) {
     }));
   };
 
+  const userLoginCheck = async (user) => {
+    try {
+      const userDocRef = doc(dataCollection, user.uid);
+      const docSnapshot = await getDoc(userDocRef);
+      if (docSnapshot.exists()) {
+        if (docSnapshot.data().userLogin) {
+          const loggedInObj = {
+            email: user.email,
+            uid: user.uid,
+          };
+          const existingData = docSnapshot.data();
+          const updatedData = {
+            ...existingData,
+            userLogin: loggedInObj,
+          };
+          await updateDoc(userDocRef, { userLogin: updatedData.userInfo });
+        }
+      } else {
+        await setDoc(userDocRef, {
+          userLogin: {
+            email: user.email,
+            uid: user.uid,
+          },
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user && user.uid) {
         setCurrentUser({ email: user.email, uid: user.uid });
-        const userCollectionRef = collection(db, user.uid);
-        setUserData(userCollectionRef);
+        userLoginCheck(user);
       } else {
         setCurrentUser(null);
         authNotificationHandler("error", "Error", "Please Login!", true);

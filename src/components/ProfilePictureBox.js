@@ -3,25 +3,22 @@ import { Card, message, Image } from "antd";
 import { ImageCarousel } from "./ImageCarousel";
 import { useUserAuth } from "../context/UserAuthContext";
 import { doc, getDoc, onSnapshot, updateDoc, setDoc } from "firebase/firestore";
+import { dataCollection } from "../firebase/firebase-config";
 
 const { Meta } = Card;
 
 export const ProfilePictureBox = () => {
-  const { userData } = useUserAuth();
+  const { currentUser } = useUserAuth();
   const [activeTabKey, setActiveTabKey] = useState("main");
   const [profilePicture, setProfilePicture] = useState();
 
   const pickProfilePicture = async (picture) => {
     try {
-      const docRef = doc(userData, "profilePicture");
+      const docRef = doc(dataCollection, currentUser.uid);
       const docSnapshot = await getDoc(docRef);
 
       if (docSnapshot.exists()) {
-        await updateDoc(docRef, picture);
-        setProfilePicture(picture);
-        message.success("Profile picture has been updated", 2);
-      } else {
-        await setDoc(docRef, picture);
+        await updateDoc(docRef, { profilePicture: picture });
         setProfilePicture(picture);
         message.success("Profile picture has been updated", 2);
       }
@@ -35,21 +32,21 @@ export const ProfilePictureBox = () => {
   };
 
   useEffect(() => {
-    if (userData) {
-      const documentRef = doc(userData, "profilePicture");
+    if (currentUser.uid) {
+      const documentRef = doc(dataCollection, currentUser.uid);
       const unsubscribe = onSnapshot(documentRef, (docSnapshot) => {
-        if (docSnapshot.exists()) {
-          const data = docSnapshot.data();
+        if (docSnapshot.data().profilePicture) {
+          const data = docSnapshot.data().profilePicture;
           setProfilePicture(data);
         } else {
-          console.log("No profile picture");
+          setProfilePicture(null);
         }
       });
       return () => {
         unsubscribe();
       };
     }
-  }, [userData]);
+  }, [currentUser.uid]);
 
   const tabList = [
     {
@@ -64,20 +61,24 @@ export const ProfilePictureBox = () => {
 
   const contentList = {
     main: profilePicture ? (
-      <Image src={profilePicture.url} />
+      <Image height={200} width={"100%"} src={profilePicture.url} />
     ) : (
       "Please choose a profile picture!"
     ),
-    pictures: <ImageCarousel pickProfilePicture={pickProfilePicture} />,
+    pictures: (
+      <ImageCarousel
+        pickProfilePicture={pickProfilePicture}
+        profilePicture={profilePicture}
+        setProfilePicture={setProfilePicture}
+      />
+    ),
   };
-
-  console.log(profilePicture);
 
   return (
     <Card
       hoverable
       style={{
-        width: 300,
+        width: "90%",
       }}
       tabList={tabList}
       activeTabKey={activeTabKey}

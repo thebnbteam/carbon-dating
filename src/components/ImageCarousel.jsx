@@ -2,10 +2,15 @@ import React from "react";
 import { Carousel, Image, message, Button, Space } from "antd";
 import { useUserAuth } from "../context/UserAuthContext";
 import { Spinner } from "./Spinner";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, deleteField } from "firebase/firestore";
+import { dataCollection } from "../firebase/firebase-config";
 
-export const ImageCarousel = ({ pickProfilePicture }) => {
-  const { uploadedPictures, userData } = useUserAuth();
+export const ImageCarousel = ({
+  pickProfilePicture,
+  profilePicture,
+  setProfilePicture,
+}) => {
+  const { uploadedPictures, currentUser } = useUserAuth();
 
   if (!uploadedPictures) {
     return <Spinner />;
@@ -13,17 +18,26 @@ export const ImageCarousel = ({ pickProfilePicture }) => {
 
   const deletePicture = async (picturePath) => {
     try {
-      const docRef = doc(userData, "pictures");
+      const docRef = doc(dataCollection, currentUser.uid);
       const docSnapshot = await getDoc(docRef);
 
-      if (docSnapshot.exists()) {
+      if (docSnapshot.data().pictures) {
         const existingPictures = docSnapshot.data().pictures || [];
         const updatedPictures = existingPictures.filter(
           (existingPicture) => existingPicture.path !== picturePath
         );
+        const profilePictureCheck = updatedPictures.some(
+          (existingPicture) => existingPicture.path === picturePath
+        );
+        if (!profilePictureCheck) {
+          await updateDoc(docRef, { profilePicture: deleteField() });
+          setProfilePicture(null);
+        }
+        console.log(profilePictureCheck);
         await updateDoc(docRef, {
           pictures: updatedPictures,
         });
+
         message.success("Image deleted successfully.", 2);
       }
     } catch (error) {

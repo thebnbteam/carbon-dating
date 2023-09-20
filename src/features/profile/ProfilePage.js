@@ -15,6 +15,7 @@ import {
   arrayUnion,
   onSnapshot,
 } from "firebase/firestore";
+import { dataCollection } from "../../firebase/firebase-config";
 
 const getBase64 = (file) => {
   return new Promise((resolve, reject) => {
@@ -88,10 +89,10 @@ export const ProfilePage = () => {
               path: fileName,
               uploadedAt: Timestamp.now(),
             };
-            const docRef = doc(userData, "pictures");
+            const docRef = doc(dataCollection, currentUser.uid);
             const docSnapshot = await getDoc(docRef);
 
-            if (docSnapshot.exists()) {
+            if (docSnapshot.data().pictures) {
               const existingPictures = docSnapshot.data().pictures || [];
               const pictureExists = existingPictures.filter(
                 (existingPicture) => {
@@ -108,7 +109,7 @@ export const ProfilePage = () => {
                 setFileList([]);
               }
             } else {
-              await setDoc(docRef, { pictures: [pictures] });
+              await updateDoc(docRef, { pictures: [pictures] });
               setFileList([]);
             }
           } catch (error) {
@@ -124,8 +125,8 @@ export const ProfilePage = () => {
   };
 
   useEffect(() => {
-    if (userData) {
-      const documentRef = doc(userData, "pictures");
+    if (currentUser.uid) {
+      const documentRef = doc(dataCollection, currentUser.uid);
       const unsubscribe = onSnapshot(documentRef, (docSnapshot) => {
         if (docSnapshot.exists()) {
           const data = docSnapshot.data().pictures;
@@ -138,7 +139,7 @@ export const ProfilePage = () => {
         unsubscribe();
       };
     }
-  }, [userData]);
+  }, [currentUser.uid]);
 
   return (
     <>

@@ -4,29 +4,39 @@ import { useUserAuth } from "./context/UserAuthContext";
 import { routes } from "./routes";
 import { MobileMenu, Spinner } from "./components";
 import { doc, getDoc } from "firebase/firestore";
+import { dataCollection } from "./firebase/firebase-config";
 
 function App() {
   const {
-    userData,
     currentUser,
     isLoading,
     setIsLoading,
     setUserInfo,
     setCategoryLikes,
+    userInfo,
+    categoryLikes,
   } = useUserAuth();
   const navigate = useNavigate();
 
   const checkUserInfo = async () => {
-    const userInfoSnapShot = await getDoc(doc(userData, "userInfo"));
-    const categorySnapShot = await getDoc(doc(userData, "categoryLikes"));
-    if (categorySnapShot.exists()) {
-      setCategoryLikes(categorySnapShot.data());
-      navigate("/profilepage");
-    } else if (userInfoSnapShot.exists()) {
-      setUserInfo(userInfoSnapShot.data());
-      navigate("/calibrationintro");
-    } else {
-      navigate("/calibratelandingpage");
+    if (currentUser) {
+      const userDataSnapshot = await getDoc(
+        doc(dataCollection, currentUser.uid)
+      );
+      if (userDataSnapshot.exists()) {
+        console.log(userDataSnapshot.exists());
+        if (userDataSnapshot.data().categoryLikes) {
+          console.log("hello");
+          setCategoryLikes(userDataSnapshot.data().categoryLikes);
+          navigate("/profilepage");
+        } else if (userDataSnapshot.data().userInfo) {
+          setUserInfo(userDataSnapshot.data().userInfo);
+          navigate("/calibrationintro");
+        } else {
+          console.log("working");
+          navigate("/calibratelandingpage");
+        }
+      }
     }
   };
 
