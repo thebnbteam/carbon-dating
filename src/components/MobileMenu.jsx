@@ -3,6 +3,8 @@ import { MenuOutlined } from "@ant-design/icons";
 import { Drawer, Button, Space } from "antd";
 import { useNavigate } from "react-router";
 import { useUserAuth } from "../context/UserAuthContext";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { dataCollection } from "../firebase/firebase-config";
 
 export function MobileMenu() {
   const [open, setOpen] = useState(false);
@@ -33,16 +35,6 @@ export function MobileMenu() {
     }
   };
 
-  useEffect(() => {
-    if (userInfo == undefined && categoryLikes == undefined) {
-      setCalibrationStatus("notDone");
-    } else if (userInfo && categoryLikes == undefined) {
-      setCalibrationStatus("partial");
-    } else {
-      setCalibrationStatus("done");
-    }
-  }, [userInfo, categoryLikes]);
-
   return (
     <>
       <MenuOutlined
@@ -53,13 +45,12 @@ export function MobileMenu() {
       />
       <Drawer width={300} onClose={onClose} open={open}>
         <Space direction="vertical" style={{ width: "100%" }}>
-          {calibrationStatus === "notDone" ||
-          calibrationStatus === "partial" ? (
+          {(!userInfo && !categoryLikes) || (userInfo && !categoryLikes) ? (
             <Button
               block
               onClick={() => {
                 navigate(
-                  calibrationStatus === "notDone"
+                  !userInfo && !categoryLikes
                     ? "/calibratelandingpage"
                     : "/calibrationintro"
                 );
@@ -69,7 +60,7 @@ export function MobileMenu() {
               Please Finish Your Calibration!
             </Button>
           ) : null}
-          {calibrationStatus == "done" ? (
+          {userInfo && categoryLikes ? (
             <>
               <Button
                 block

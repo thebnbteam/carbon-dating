@@ -1,7 +1,7 @@
 import { FingerPrintLogo } from "../../components";
 import { bioQuestions } from "../../bioquestionconstant";
 import { Link } from "react-router-dom";
-import { Form, Input } from "antd";
+import { Form, Input, message } from "antd";
 import { SubmitButton } from "../../components";
 import { setDoc, doc, getDoc, updateDoc } from "firebase/firestore";
 import { useUserAuth } from "../../context/UserAuthContext";
@@ -9,7 +9,7 @@ import { dataCollection } from "../../firebase/firebase-config";
 
 export const CalibrationQuestionsPage = () => {
   const [form] = Form.useForm();
-  const { currentUser } = useUserAuth();
+  const { currentUser, setUserInfo } = useUserAuth();
 
   const bioSubmit = async () => {
     const filledInfo = form.getFieldsValue();
@@ -18,21 +18,12 @@ export const CalibrationQuestionsPage = () => {
       const docSnapshot = await getDoc(userDocRef);
 
       if (docSnapshot.exists()) {
-        const existingData = docSnapshot.data();
-        const updatedData = {
-          ...existingData,
-          userInfo: filledInfo,
-        };
-
-        await updateDoc(userDocRef, { userInfo: updatedData.userInfo });
-
-        console.log("UserInfo updated successfully");
-      } else {
-        await setDoc(userDocRef, { userInfo: filledInfo });
-        console.log("Data added successfully");
+        await updateDoc(userDocRef, { userInfo: filledInfo });
+        setUserInfo(filledInfo);
+        message.success("Information has been updated", 2);
       }
     } catch (err) {
-      console.error(err.message);
+      message.error(err, 2);
     }
   };
 

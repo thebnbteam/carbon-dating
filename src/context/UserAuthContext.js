@@ -9,8 +9,8 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 
-import { auth, db, dataCollection } from "../firebase/firebase-config";
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { auth, dataCollection } from "../firebase/firebase-config";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 const userAuthContext = createContext();
 
@@ -38,7 +38,7 @@ export function UserAuthContextProvider({ children }) {
         password
       );
       const user = userCredential.user;
-      setCurrentUser({ email: user.email, uid: user.uid });
+      console.log(`Logged in:${user.email}`);
     } catch (error) {
       console.error("Sign-up error:", error.message);
       throw error;
@@ -53,8 +53,7 @@ export function UserAuthContextProvider({ children }) {
         password
       );
       const user = userCredential.user;
-      setCurrentUser({ email: user.email, uid: user.uid });
-      console.log("User logged in:", user.email, user.uid);
+      console.log("User logged in:", user);
     } catch (error) {
       console.error("Log-in error:", error.message);
       throw error;
@@ -65,6 +64,8 @@ export function UserAuthContextProvider({ children }) {
     try {
       await signOut(auth);
       setCurrentUser(null);
+      setCategoryLikes(null);
+      setUserInfo(null);
       setUploadedPictures([]);
       console.log("User logged out");
     } catch (error) {
@@ -109,17 +110,13 @@ export function UserAuthContextProvider({ children }) {
       const userDocRef = doc(dataCollection, user.uid);
       const docSnapshot = await getDoc(userDocRef);
       if (docSnapshot.exists()) {
-        if (docSnapshot.data().userLogin) {
-          const loggedInObj = {
-            email: user.email,
-            uid: user.uid,
-          };
-          const existingData = docSnapshot.data();
-          const updatedData = {
-            ...existingData,
-            userLogin: loggedInObj,
-          };
-          await updateDoc(userDocRef, { userLogin: updatedData.userInfo });
+        if (!docSnapshot.data().userLogin) {
+          await setDoc(userDocRef, {
+            userLogin: {
+              email: user.email,
+              uid: user.uid,
+            },
+          });
         }
       } else {
         await setDoc(userDocRef, {
@@ -134,18 +131,37 @@ export function UserAuthContextProvider({ children }) {
     }
   };
 
+  const checkUserInfo = async (user) => {
+    if (user) {
+      const userDocRef = doc(dataCollection, user.uid);
+      const docSnapshot = await getDoc(userDocRef);
+      if (docSnapshot.exists()) {
+        const userData = docSnapshot.data();
+        setUserInfo((prevUserInfo) => userData.userInfo || prevUserInfo);
+        setCategoryLikes(
+          (prevCategoryLikes) => userData.categoryLikes || prevCategoryLikes
+        );
+      }
+    }
+  };
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const handleAuthStateChanged = async (user) => {
       if (user && user.uid) {
-        setCurrentUser({ email: user.email, uid: user.uid });
+        await checkUserInfo(user);
         userLoginCheck(user);
+        setCurrentUser({ email: user.email, uid: user.uid });
       } else {
         setCurrentUser(null);
         authNotificationHandler("error", "Error", "Please Login!", true);
       }
-    });
+    };
 
-    return () => unsubscribe();
+    const unsubscribe = onAuthStateChanged(auth, handleAuthStateChanged);
+
+    return () => {
+      unsubscribe();
+    };
   }, [auth]);
 
   return (

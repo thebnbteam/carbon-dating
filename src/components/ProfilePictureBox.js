@@ -8,7 +8,7 @@ import { dataCollection } from "../firebase/firebase-config";
 const { Meta } = Card;
 
 export const ProfilePictureBox = () => {
-  const { currentUser } = useUserAuth();
+  const { currentUser, uploadedPictures } = useUserAuth();
   const [activeTabKey, setActiveTabKey] = useState("main");
   const [profilePicture, setProfilePicture] = useState();
 
@@ -65,12 +65,14 @@ export const ProfilePictureBox = () => {
     ) : (
       "Please choose a profile picture!"
     ),
-    pictures: (
+    pictures: uploadedPictures ? (
       <ImageCarousel
         pickProfilePicture={pickProfilePicture}
         profilePicture={profilePicture}
         setProfilePicture={setProfilePicture}
       />
+    ) : (
+      "Click the upload button below to upload!"
     ),
   };
 

@@ -33,7 +33,7 @@ export const ImageCarousel = ({
           await updateDoc(docRef, { profilePicture: deleteField() });
           setProfilePicture(null);
         }
-        console.log(profilePictureCheck);
+
         await updateDoc(docRef, {
           pictures: updatedPictures,
         });

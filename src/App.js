@@ -3,52 +3,27 @@ import { Routes, Route, useNavigate } from "react-router";
 import { useUserAuth } from "./context/UserAuthContext";
 import { routes } from "./routes";
 import { MobileMenu, Spinner } from "./components";
-import { doc, getDoc } from "firebase/firestore";
-import { dataCollection } from "./firebase/firebase-config";
 
 function App() {
-  const {
-    currentUser,
-    isLoading,
-    setIsLoading,
-    setUserInfo,
-    setCategoryLikes,
-    userInfo,
-    categoryLikes,
-  } = useUserAuth();
+  const { currentUser, userInfo, categoryLikes } = useUserAuth();
   const navigate = useNavigate();
 
-  const checkUserInfo = async () => {
-    if (currentUser) {
-      const userDataSnapshot = await getDoc(
-        doc(dataCollection, currentUser.uid)
-      );
-      if (userDataSnapshot.exists()) {
-        console.log(userDataSnapshot.exists());
-        if (userDataSnapshot.data().categoryLikes) {
-          console.log("hello");
-          setCategoryLikes(userDataSnapshot.data().categoryLikes);
-          navigate("/profilepage");
-        } else if (userDataSnapshot.data().userInfo) {
-          setUserInfo(userDataSnapshot.data().userInfo);
-          navigate("/calibrationintro");
-        } else {
-          console.log("working");
-          navigate("/calibratelandingpage");
-        }
-      }
-    }
-  };
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (currentUser) {
-      checkUserInfo();
-      setIsLoading(false);
+      if (userInfo && categoryLikes) {
+        navigate("/profilepage");
+      } else if (!categoryLikes && userInfo) {
+        navigate("/calibrationintro");
+      } else {
+        navigate("/calibratelandingpage");
+      }
     } else {
-      setIsLoading(false);
       navigate("/");
     }
-  }, [currentUser]);
+    setIsLoading(false);
+  }, [currentUser, userInfo, categoryLikes]);
 
   if (isLoading) {
     return <Spinner />;
