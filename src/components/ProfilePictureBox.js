@@ -61,7 +61,9 @@ export const ProfilePictureBox = () => {
 
   const contentList = {
     main: profilePicture ? (
-      <Image height={200} width={"100%"} src={profilePicture.url} />
+      <div className="flex justify-center">
+        <Image height={250} width={250} src={profilePicture.url} />
+      </div>
     ) : (
       "Please choose a profile picture!"
     ),

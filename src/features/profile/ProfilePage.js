@@ -27,13 +27,8 @@ const getBase64 = (file) => {
 };
 
 export const ProfilePage = () => {
-  const {
-    authNotifications,
-    closeNotification,
-    currentUser,
-    userData,
-    setUploadedPictures,
-  } = useUserAuth();
+  const { currentUser, userData, setUploadedPictures, categoryLikes } =
+    useUserAuth();
   const navigate = useNavigate();
 
   const [fileList, setFileList] = useState([]);
@@ -144,25 +139,8 @@ export const ProfilePage = () => {
   return (
     <>
       <div className="flex flex-col mx-4 gap-6">
-        {authNotifications.type && (
-          <Alert
-            afterClose={() => {
-              closeNotification();
-            }}
-            type={authNotifications.type}
-            message={authNotifications.message}
-            description={authNotifications.description}
-            showIcon
-            closable
-            style={{
-              margin: 10,
-            }}
-          />
-        )}
         <h2 className="text-center">profile</h2>
-        <div className="flex justify-center">
-          <ProfilePictureBox />
-        </div>
+        <ProfilePictureBox />
         <div className="mt-10 flex flex-col gap-3">
           <Button size="large" onClick={() => navigate("/recalibrationpage")}>
             Calibrate Again

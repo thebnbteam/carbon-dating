@@ -1,38 +1,57 @@
-import { Card } from "antd";
+import React, { forwardRef } from "react";
+import { Card, Image } from "antd";
+import TinderCard from "react-tinder-card";
 
 const { Meta } = Card;
 
-export const MatchesDisplayBox = ({ size, expanded }) => {
-  return (
-    <>
-      <Card
-        hoverable
-        style={{
-          width: size,
-          margin: 10,
-        }}
-        cover={
-          <img
-            className="block object-cover rounded-lg"
-            src="https://hips.hearstapps.com/hmg-prod/images/beautiful-smooth-haired-red-cat-lies-on-the-sofa-royalty-free-image-1678488026.jpg"
-            alt="cute orange cat"
-          />
-        }
-      >
-        <Meta title="Match name" />
-        {/* Map function with top 5 and categories they like */}
-        {expanded && (
+const MatchesDisplayBox = forwardRef(
+  ({ data, expanded, swiped, ref }, index) => {
+    return (
+      <>
+        <TinderCard
+          onSwipe={(dir) => swiped(dir, data.userInfo.name, index)}
+          ref={ref}
+          className="absolute"
+          key={data.userInfo.name}
+        >
           <Card
+            on
+            hoverable
             style={{
-              marginTop: 15,
+              width: 250,
+              margin: 10,
             }}
-            type="inner"
-            title="Top 5"
+            cover={
+              <Image
+                height={250}
+                width={250}
+                src={data.profilePicture.url}
+                alt="cute cat picture"
+              />
+            }
           >
-            Loves: Movies, Food, Music
+            <Meta title={data.userInfo.name} />
+            {/* Map function with top 5 and categories they like */}
+            {expanded && (
+              <Card
+                style={{
+                  marginTop: 15,
+                }}
+                type="inner"
+                title="Loves (Top 5)"
+              >
+                <div className="flex flex-wrap justify-center">
+                  {data.topFive.map((topic) => {
+                    return <p className="mx-1">{topic}</p>;
+                  })}
+                </div>
+              </Card>
+            )}
           </Card>
-        )}
-      </Card>
-    </>
-  );
-};
+        </TinderCard>
+      </>
+    );
+  }
+);
+
+export default MatchesDisplayBox;

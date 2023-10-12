@@ -10,17 +10,14 @@ import {
 } from "firebase/auth";
 
 import { auth, dataCollection } from "../firebase/firebase-config";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, getDocs } from "firebase/firestore";
+import { message } from "antd";
 
 const userAuthContext = createContext();
 
 export function UserAuthContextProvider({ children }) {
   const [currentUser, setCurrentUser] = useState({});
-  const [authNotifications, setAuthNotifications] = useState({
-    type: "",
-    message: "",
-    description: "",
-  });
+
   const [userData, setUserData] = useState();
   const [userInfo, setUserInfo] = useState();
   const [categoryLikes, setCategoryLikes] = useState();
@@ -29,6 +26,8 @@ export function UserAuthContextProvider({ children }) {
   const [imageUpload, setImageUpload] = useState(null);
   const [imageUrls, setImageUrls] = useState([]);
   const [uploadedPictures, setUploadedPictures] = useState([]);
+  const [allProfiles, setAllProfiles] = useState([]);
+  const [topFive, setTopFive] = useState([]);
 
   const signUp = async (email, password) => {
     try {
@@ -53,9 +52,9 @@ export function UserAuthContextProvider({ children }) {
         password
       );
       const user = userCredential.user;
-      console.log("User logged in:", user);
+      message.success("Logged in successfully.", 2);
     } catch (error) {
-      console.error("Log-in error:", error.message);
+      message.error("Log-in error:", 2);
       throw error;
     }
   };
@@ -67,9 +66,9 @@ export function UserAuthContextProvider({ children }) {
       setCategoryLikes(null);
       setUserInfo(null);
       setUploadedPictures([]);
-      console.log("User logged out");
+      message.success("Logged out successfully.", 2);
     } catch (error) {
-      console.error("Log-out error:", error.message);
+      message.error(`Log out error: ${error.message}`, 2);
       throw error;
     }
   };
@@ -85,24 +84,6 @@ export function UserAuthContextProvider({ children }) {
       console.error("Google sign-in error:", error.message);
       throw error;
     }
-  };
-
-  const authNotificationHandler = (type, message, description, state) => {
-    setAuthNotifications((prev) => ({
-      ...prev,
-      type: type,
-      message: message,
-      description: description,
-      state: state,
-    }));
-  };
-
-  const closeNotification = (type) => {
-    setAuthNotifications((prev) => ({
-      ...prev,
-      type: "",
-      state: false,
-    }));
   };
 
   const userLoginCheck = async (user) => {
@@ -145,23 +126,27 @@ export function UserAuthContextProvider({ children }) {
     }
   };
 
+  const getAllProfiles = async () => {
+    const querySnapshot = await getDocs(dataCollection);
+    let profileArray = [];
+    querySnapshot.forEach((doc) => {
+      profileArray.push(doc.data());
+    });
+    setAllProfiles(profileArray);
+  };
+
+  const handleAuthStateChanged = async (user) => {
+    if (user && user.uid) {
+      await userLoginCheck(user);
+      await getAllProfiles();
+      setCurrentUser({ email: user.email, uid: user.uid });
+    } else {
+      setCurrentUser(null);
+    }
+  };
+
   useEffect(() => {
-    const handleAuthStateChanged = async (user) => {
-      if (user && user.uid) {
-        await checkUserInfo(user);
-        userLoginCheck(user);
-        setCurrentUser({ email: user.email, uid: user.uid });
-      } else {
-        setCurrentUser(null);
-        authNotificationHandler("error", "Error", "Please Login!", true);
-      }
-    };
-
-    const unsubscribe = onAuthStateChanged(auth, handleAuthStateChanged);
-
-    return () => {
-      unsubscribe();
-    };
+    onAuthStateChanged(auth, handleAuthStateChanged);
   }, [auth]);
 
   return (
@@ -173,10 +158,6 @@ export function UserAuthContextProvider({ children }) {
         logOut,
         signUp,
         googleSignIn,
-        authNotificationHandler,
-        authNotifications,
-        setAuthNotifications,
-        closeNotification,
         userData,
         setUserData,
         userInfo,
@@ -193,6 +174,10 @@ export function UserAuthContextProvider({ children }) {
         setImageUrls,
         uploadedPictures,
         setUploadedPictures,
+        allProfiles,
+        setAllProfiles,
+        topFive,
+        setTopFive,
       }}
     >
       {children}

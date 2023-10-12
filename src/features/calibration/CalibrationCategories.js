@@ -14,7 +14,7 @@ import { useUserAuth } from "../../context/UserAuthContext";
 import { dataCollection } from "../../firebase/firebase-config";
 
 export const CalibrationCategories = () => {
-  const { currentUser, setCategoryLikes } = useUserAuth();
+  const { currentUser, setCategoryLikes, categoryLikes } = useUserAuth();
   const [mainCategoryIndex, setMainCategoryIndex] = useState(0);
   const [upClickState, setUpClickState] = useState(false);
   const [subCategoryIndex, setSubCategoryIndex] = useState(0);
@@ -72,12 +72,13 @@ export const CalibrationCategories = () => {
             arrayUnion(selectedSubCategory),
         });
       }
+      categoryLikesFetcher();
     } catch (error) {
       console.log(error);
     }
   }
 
-  const categoryLikesFetcher = async (currentUser) => {
+  const categoryLikesFetcher = async () => {
     const userDocRef = doc(dataCollection, currentUser.uid);
     try {
       const docSnapshot = await getDoc(userDocRef);
@@ -89,14 +90,6 @@ export const CalibrationCategories = () => {
       console.log(error);
     }
   };
-
-  useEffect(() => {
-    return () => {
-      if (currentUser) {
-        categoryLikesFetcher(currentUser);
-      }
-    };
-  }, [currentUser]);
 
   return (
     <>

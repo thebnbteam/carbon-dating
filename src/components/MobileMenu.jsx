@@ -3,12 +3,9 @@ import { MenuOutlined } from "@ant-design/icons";
 import { Drawer, Button, Space } from "antd";
 import { useNavigate } from "react-router";
 import { useUserAuth } from "../context/UserAuthContext";
-import { doc, getDoc, onSnapshot } from "firebase/firestore";
-import { dataCollection } from "../firebase/firebase-config";
 
 export function MobileMenu() {
   const [open, setOpen] = useState(false);
-  const [calibrationStatus, setCalibrationStatus] = useState("");
   const navigate = useNavigate();
   const { logOut, authNotificationHandler, userInfo, categoryLikes } =
     useUserAuth();
@@ -24,11 +21,6 @@ export function MobileMenu() {
   const signOut = async () => {
     try {
       await logOut();
-      authNotificationHandler(
-        "success",
-        "Success",
-        "You have successfully logged out!"
-      );
       navigate("/");
     } catch (err) {
       authNotificationHandler("error", "Error", err.message);
@@ -39,9 +31,10 @@ export function MobileMenu() {
     <>
       <MenuOutlined
         style={{
-          fontSize: 20,
+          fontSize: 25,
         }}
         onClick={showDrawer}
+        className="m-2"
       />
       <Drawer width={300} onClose={onClose} open={open}>
         <Space direction="vertical" style={{ width: "100%" }}>

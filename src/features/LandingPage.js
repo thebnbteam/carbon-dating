@@ -4,25 +4,8 @@ import { Button, Alert } from "antd";
 import { useUserAuth } from "../context/UserAuthContext";
 
 export const LandingPage = () => {
-  const { authNotifications, closeNotification } = useUserAuth();
-
   return (
     <div className="flex flex-col items-center gap-4 my-[20%]">
-      {authNotifications.state === true ? (
-        <Alert
-          onClose={() => {
-            closeNotification();
-          }}
-          type={authNotifications.type}
-          message={authNotifications.message}
-          description={authNotifications.description}
-          showIcon
-          closable
-          style={{
-            margin: 10,
-          }}
-        />
-      ) : null}
       <h2 className="text-center">carbon</h2>
       <h2 className="text-center">dating</h2>
       <FingerPrintLogo />

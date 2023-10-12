@@ -14,12 +14,6 @@ export const LoginPage = () => {
   const signIn = async () => {
     try {
       await logIn(form.getFieldsValue().email, form.getFieldsValue().password);
-      authNotificationHandler(
-        "success",
-        "Success",
-        "You have successfully logged in!",
-        true
-      );
     } catch (err) {
       authNotificationHandler("error", "Error", err.message);
     }
@@ -30,18 +24,6 @@ export const LoginPage = () => {
       <FingerPrintLogo />
       <h2 className="text-center">carbon</h2>
       <h2 className="text-center">dating</h2>
-      {authNotifications.type === "error" ? (
-        <Alert
-          type={authNotifications.type}
-          message={authNotifications.message}
-          description={authNotifications.description}
-          showIcon
-          closable
-          style={{
-            margin: 10,
-          }}
-        />
-      ) : null}
       <Form
         form={form}
         name="normal_login"

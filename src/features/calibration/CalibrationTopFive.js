@@ -9,7 +9,7 @@ import { dataCollection } from "../../firebase/firebase-config";
 
 export const CalibrationTopFive = () => {
   const navigate = useNavigate();
-  const { currentUser } = useUserAuth();
+  const { currentUser, setTopFive, topFive } = useUserAuth();
   const [topFiveIndex, setTopFiveIndex] = useState(0);
   const categoriesArray = Object.keys(categories);
   let firstTopFive = categoriesArray[topFiveIndex];
@@ -25,6 +25,19 @@ export const CalibrationTopFive = () => {
     }
   }
 
+  async function getTopFive() {
+    const userDocRef = doc(dataCollection, currentUser.uid);
+    try {
+      const docSnapshot = await getDoc(userDocRef);
+      if (docSnapshot.exists()) {
+        const topFive = docSnapshot.data().topFive;
+        setTopFive(topFive);
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
   async function addTopFive(selection) {
     const userDocRef = doc(dataCollection, currentUser.uid);
     try {
@@ -34,6 +47,7 @@ export const CalibrationTopFive = () => {
       } else {
         await updateDoc(userDocRef, { topFive: arrayUnion(selection) });
       }
+      getTopFive();
     } catch (error) {
       console.log(error);
     }

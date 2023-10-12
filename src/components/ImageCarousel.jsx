@@ -50,14 +50,16 @@ export const ImageCarousel = ({
     <>
       <Carousel dotPosition="top">
         {uploadedPictures.map((pic) => (
-          <div>
-            <Image
-              height={200}
-              width={"100%"}
-              src={pic.url}
-              key={pic.id}
-              path={pic.path}
-            />
+          <>
+            <div className="m-2 flex justify-center">
+              <Image
+                height={250}
+                width={250}
+                src={pic.url}
+                key={pic.id}
+                path={pic.path}
+              />
+            </div>
             <Space>
               <Button
                 onClick={() => {
@@ -75,7 +77,7 @@ export const ImageCarousel = ({
                 Delete
               </Button>
             </Space>
-          </div>
+          </>
         ))}
       </Carousel>
     </>
