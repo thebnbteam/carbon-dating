@@ -72,24 +72,18 @@ export const CalibrationCategories = () => {
             arrayUnion(selectedSubCategory),
         });
       }
-      categoryLikesFetcher();
+      setCategoryLikes((prev) => {
+        let newObj = Object.assign({}, prev);
+        if (newObj[selectedCategory] == null) {
+          newObj[selectedCategory] = [];
+        }
+        newObj[selectedCategory].push(selectedSubCategory);
+        return newObj;
+      });
     } catch (error) {
       console.log(error);
     }
   }
-
-  const categoryLikesFetcher = async () => {
-    const userDocRef = doc(dataCollection, currentUser.uid);
-    try {
-      const docSnapshot = await getDoc(userDocRef);
-      if (docSnapshot.exists()) {
-        const updatedCategoryLikes = docSnapshot.data().categoryLikes;
-        setCategoryLikes(updatedCategoryLikes);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
   return (
     <>
