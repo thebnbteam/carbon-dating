@@ -1,22 +1,16 @@
 import React, { useState, useEffect } from "react";
 import {
   UpSquareOutlined,
+  DownSquareOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
-  CheckOutlined,
-  CloseOutlined,
+  UndoOutlined,
 } from "@ant-design/icons";
-import { Card, Image } from "antd";
+import { message } from "antd";
 import { useUserAuth } from "../../context/UserAuthContext";
-import {
-  motion,
-  useMotionValue,
-  useTransform,
-  useAnimation,
-  AnimatePresence,
-} from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
-const { Meta } = Card;
+import { MatchesCard } from "./MatchesCards";
 
 export const SwipeLandingPage = () => {
   const { allProfiles, setAllProfiles } = useUserAuth();
@@ -24,8 +18,8 @@ export const SwipeLandingPage = () => {
   const [filteredProfiles, setFilteredProfiles] = useState([]);
   const [leaveX, setLeaveX] = useState(0);
   const [directionX, setDirectionX] = useState(0);
-
-  const controls = useAnimation();
+  const [selectedElement, setSelectedElement] = useState(null);
+  const [removedCards, setRemovedCards] = useState([]);
 
   const activeIndex = filteredProfiles.length - 1;
 
@@ -34,27 +28,49 @@ export const SwipeLandingPage = () => {
   }
 
   const removeCard = (id) => {
+    const removedCard = filteredProfiles.filter(
+      (profiles) => profiles.userLogin.uid === id
+    );
+
+    setRemovedCards((prev) => [...prev, ...removedCard]);
+
     setFilteredProfiles((current) =>
       current.filter((card) => card.userLogin.uid !== id)
     );
   };
 
-  const onDragEnd = (info, profile) => {
-    console.log(info.offset.x);
-
+  const onDragEnd = (info, profileId) => {
     if (info.offset.y < -200) {
       profileExpander();
     }
 
     if (info.offset.x > 200) {
       setLeaveX(-1000);
-      removeCard(profile);
+      removeCard(profileId);
     }
 
     if (info.offset.x < -200) {
       setLeaveX(1000);
-      removeCard(profile);
+      removeCard(profileId);
     }
+  };
+
+  const undoSwipe = () => {
+    if (removedCards.length > 0) {
+      const singleRemovedCard = removedCards.pop();
+      setFilteredProfiles((current) => [...current, singleRemovedCard]);
+    } else {
+      message.error(`You didn't swipe yet!`, 2);
+    }
+  };
+
+  const zIndexIncrement = (zIndex) => {
+    let newZindex = zIndex + 50;
+    return newZindex;
+  };
+
+  const handleElementClick = (index) => {
+    setSelectedElement(index);
   };
 
   useEffect(() => {
@@ -68,8 +84,8 @@ export const SwipeLandingPage = () => {
 
   return (
     <>
-      <div className="flex flex-col">
-        <div className="flex justify-center">
+      <div className="flex flex-col pb-[300px]">
+        <div className="flex justify-center m-4">
           <motion.div
             className="jello-horizontal"
             animate={{
@@ -78,117 +94,59 @@ export const SwipeLandingPage = () => {
             initial={{ scale: 1 }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <UpSquareOutlined
-              onClick={() => {
-                profileExpander();
-              }}
-              className="text-5xl"
-            />
+            {profileExpanded ? (
+              <DownSquareOutlined
+                onClick={() => {
+                  profileExpander();
+                }}
+                className="text-5xl"
+              />
+            ) : (
+              <UpSquareOutlined
+                onClick={() => {
+                  profileExpander();
+                }}
+                className="text-5xl"
+              />
+            )}
           </motion.div>
         </div>
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center relative">
           <AnimatePresence>
-            {filteredProfiles.map((profile, index) =>
-              activeIndex === index ? (
-                <motion.div
-                  key={index}
-                  dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                  drag={true}
-                  initial={{ scale: 1 }}
-                  onDragEnd={(event, info) => {
-                    if (info.delta.x === 0) {
-                      setTimeout(() => {
-                        setDirectionX(0);
-                      }, 0);
-                    }
-                    onDragEnd(info, filteredProfiles[index].userLogin.uid);
-                  }}
-                  onDrag={(event, info) => {
-                    setDirectionX(info.offset.x);
-                  }}
-                  animate={{
-                    scale: 1.05,
-                  }}
-                  exit={{
-                    x: leaveX,
-                    opacity: 0,
-                    scale: 0.5,
-                    transition: { duration: 0.2 },
-                    rotate: 300,
-                  }}
-                  onAnimationComplete={() => {
-                    console.log("completed");
-                  }}
-                  className={`absolute`}
-                >
-                  <Card
-                    hoverable
-                    style={{
-                      width: 200,
-                      margin: 10,
-                    }}
-                    cover={
-                      <Image
-                        height={200}
-                        width={200}
-                        src={profile.profilePicture.url}
-                        alt="cute cat picture"
-                      />
-                    }
-                  >
-                    <Meta title={profile.userInfo.name} />
-                    {directionX > 0 ? (
-                      <div className="flex justify-center">
-                        <CheckOutlined className="text-5xl" />
-                      </div>
-                    ) : directionX < 0 ? (
-                      <div className="flex justify-center">
-                        <CloseOutlined className="text-5xl" />
-                      </div>
-                    ) : null}
-                    {profileExpanded && (
-                      <Card
-                        style={{
-                          marginTop: 15,
-                        }}
-                        type="inner"
-                        title="Loves (Top 5)"
-                      >
-                        <div className="flex flex-wrap justify-center">
-                          {profile.topFive.map((topic) => {
-                            return <p className="mx-1">{topic}</p>;
-                          })}
-                        </div>
-                      </Card>
-                    )}
-                  </Card>
-                </motion.div>
-              ) : (
-                <div className="absolute rotate-12">
-                  <Card
-                    hoverable
-                    style={{
-                      width: 200,
-                      margin: 10,
-                    }}
-                    cover={
-                      <Image
-                        height={200}
-                        width={200}
-                        src={profile.profilePicture.url}
-                        alt="cute cat picture"
-                      />
-                    }
-                  >
-                    <Meta title={profile.userInfo.name} />
-                  </Card>
-                </div>
-              )
-            )}
+            {filteredProfiles.map((profile, index) => (
+              <MatchesCard
+                key={profile.userLogin.uid}
+                index={index}
+                profile={profile}
+                activeIndex={activeIndex}
+                leaveX={leaveX}
+                setLeaveX={setLeaveX}
+                directionX={directionX}
+                setDirectionX={setDirectionX}
+                selectedElement={selectedElement}
+                setSelectedElement={setSelectedElement}
+                zIndexIncrement={zIndexIncrement}
+                profileExpanded={profileExpanded}
+                profileExpander={profileExpander}
+                onDragEnd={onDragEnd}
+                currentProfile={filteredProfiles[index]}
+              />
+            ))}
           </AnimatePresence>
+          {filteredProfiles.length === 0 ? (
+            <div className="flex flex-col justify-center items-center mt-6">
+              <h3 className="text-center">No more!</h3>
+              <h3 className="text-center">Please come back later!</h3>
+            </div>
+          ) : null}
         </div>
-        <div className="w-full flex justify-center mt-[400px]">
-          <div>
+        <div className="w-full flex flex-col justify-center mt-[300px]">
+          <h3 className="text-center mb-4">
+            {profileExpanded
+              ? "Click To See Details"
+              : "Swipe Up To See Details"}
+          </h3>
+          <div className="flex justify-around">
             <CloseCircleOutlined
               className="text-4xl mx-5"
               onClick={() => {
@@ -196,8 +154,17 @@ export const SwipeLandingPage = () => {
                   { offset: { x: -500 } },
                   filteredProfiles[activeIndex].userLogin.uid
                 );
+                setDirectionX(-500);
               }}
             />
+
+            <UndoOutlined
+              className="text-4xl mx-5"
+              onClick={() => {
+                undoSwipe();
+              }}
+            />
+
             <CheckCircleOutlined
               className="text-4xl mx-5"
               onClick={() => {
@@ -205,6 +172,7 @@ export const SwipeLandingPage = () => {
                   { offset: { x: 500 } },
                   filteredProfiles[activeIndex].userLogin.uid
                 );
+                setDirectionX(500);
               }}
             />
           </div>
