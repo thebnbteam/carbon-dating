@@ -1,57 +1,68 @@
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+
+import { motion, useMotionValueEvent, useMotionValue } from "framer-motion";
 
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
 
 import { Card, Image, Carousel } from "antd";
 
+import { useUserAuth } from "../../context/UserAuthContext";
+
 const { Meta } = Card;
 
 export const MatchesCard = ({
-  key,
   index,
   profile,
   activeIndex,
-  directionX,
-  setDirectionX,
-  selectedElement,
-  setSelectedElement,
-  zIndexIncrement,
   profileExpanded,
   currentProfile,
   onDragEnd,
-  leaveX,
-  setLeaveX,
 }) => {
+  const { leaveX, setLeaveX } = useUserAuth();
+  const [selectedElement, setSelectedElement] = useState(null);
+
+  const zIndexIncrement = (zIndex) => {
+    let newZindex = zIndex + 50;
+    return newZindex;
+  };
+
+  const handleElementClick = (index) => {
+    setSelectedElement(index);
+  };
+
   return activeIndex === index ? (
     <>
       <motion.div
-        key={key}
+        key={`card-${index}`}
         dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
         drag={true}
         initial={{ x: 0 }}
         onDragEnd={(event, info) => {
           if (info.delta.x === 0) {
-            setTimeout(() => {
-              setDirectionX(0);
-            }, 0);
+            setLeaveX(0);
+          }
+
+          if (info.offset.x > 200) {
+            setLeaveX(1000);
+          }
+
+          if (info.offset.x < -200) {
+            setLeaveX(-1000);
           }
           onDragEnd(info, currentProfile.userLogin.uid);
         }}
         onDrag={(event, info) => {
-          setDirectionX(info.offset.x);
+          setLeaveX(info.offset.x);
         }}
-        onAnimationEnd={() => {
-          setDirectionX(0);
+        exit={{
+          x: leaveX > 200 ? 1000 : -1000,
+          opacity: 0,
+          scale: 0.5,
+          transition: { duration: 0.5 },
+          rotate: 300,
         }}
         animate={{
           scale: 1.05,
-        }}
-        exit={{
-          x: leaveX,
-          opacity: 0,
-          scale: 0.5,
-          transition: { duration: 0.7 },
-          rotate: 300,
         }}
         style={{
           position: "absolute",
@@ -80,11 +91,11 @@ export const MatchesCard = ({
           }
         >
           <Meta title={profile.userInfo.name} />
-          {directionX > 0 ? (
+          {leaveX > 0 ? (
             <div className="flex justify-center">
               <CheckOutlined className="text-5xl" />
             </div>
-          ) : directionX < 0 ? (
+          ) : leaveX < 0 ? (
             <div className="flex justify-center">
               <CloseOutlined className="text-5xl" />
             </div>

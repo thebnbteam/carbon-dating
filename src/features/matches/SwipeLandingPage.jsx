@@ -13,12 +13,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MatchesCard } from "./MatchesCards";
 
 export const SwipeLandingPage = () => {
-  const { allProfiles, setAllProfiles } = useUserAuth();
+  const { allProfiles, setLeaveX } = useUserAuth();
   const [profileExpanded, setProfileExpanded] = useState(false);
   const [filteredProfiles, setFilteredProfiles] = useState([]);
-  const [leaveX, setLeaveX] = useState(0);
-  const [directionX, setDirectionX] = useState(0);
-  const [selectedElement, setSelectedElement] = useState(null);
   const [removedCards, setRemovedCards] = useState([]);
 
   const activeIndex = filteredProfiles.length - 1;
@@ -44,13 +41,10 @@ export const SwipeLandingPage = () => {
       profileExpander();
     }
 
-    if (info.offset.x > 200) {
-      setLeaveX(-1000);
-      removeCard(profileId);
-    }
-
-    if (info.offset.x < -200) {
-      setLeaveX(1000);
+    if (
+      (info.offset.x > 200 && info.offset.y > -200) ||
+      (info.offset.x < -200 && info.offset.y > -200)
+    ) {
       removeCard(profileId);
     }
   };
@@ -62,15 +56,6 @@ export const SwipeLandingPage = () => {
     } else {
       message.error(`You didn't swipe yet!`, 2);
     }
-  };
-
-  const zIndexIncrement = (zIndex) => {
-    let newZindex = zIndex + 50;
-    return newZindex;
-  };
-
-  const handleElementClick = (index) => {
-    setSelectedElement(index);
   };
 
   useEffect(() => {
@@ -112,26 +97,20 @@ export const SwipeLandingPage = () => {
           </motion.div>
         </div>
         <div className="flex flex-col items-center relative">
-          <AnimatePresence>
-            {filteredProfiles.map((profile, index) => (
-              <MatchesCard
-                key={profile.userLogin.uid}
-                index={index}
-                profile={profile}
-                activeIndex={activeIndex}
-                leaveX={leaveX}
-                setLeaveX={setLeaveX}
-                directionX={directionX}
-                setDirectionX={setDirectionX}
-                selectedElement={selectedElement}
-                setSelectedElement={setSelectedElement}
-                zIndexIncrement={zIndexIncrement}
-                profileExpanded={profileExpanded}
-                profileExpander={profileExpander}
-                onDragEnd={onDragEnd}
-                currentProfile={filteredProfiles[index]}
-              />
-            ))}
+          <AnimatePresence onExitComplete={() => setLeaveX(0)}>
+            {filteredProfiles.map((profile, index) => {
+              return (
+                <MatchesCard
+                  key={profile.userLogin.uid}
+                  index={index}
+                  profile={profile}
+                  activeIndex={activeIndex}
+                  profileExpanded={profileExpanded}
+                  onDragEnd={onDragEnd}
+                  currentProfile={filteredProfiles[index]}
+                />
+              );
+            })}
           </AnimatePresence>
           {filteredProfiles.length === 0 ? (
             <div className="flex flex-col justify-center items-center mt-6">
@@ -150,11 +129,8 @@ export const SwipeLandingPage = () => {
             <CloseCircleOutlined
               className="text-4xl mx-5"
               onClick={() => {
-                onDragEnd(
-                  { offset: { x: -500 } },
-                  filteredProfiles[activeIndex].userLogin.uid
-                );
-                setDirectionX(-500);
+                setLeaveX(-1000);
+                removeCard(filteredProfiles[activeIndex].userLogin.uid);
               }}
             />
 
@@ -168,11 +144,8 @@ export const SwipeLandingPage = () => {
             <CheckCircleOutlined
               className="text-4xl mx-5"
               onClick={() => {
-                onDragEnd(
-                  { offset: { x: 500 } },
-                  filteredProfiles[activeIndex].userLogin.uid
-                );
-                setDirectionX(500);
+                setLeaveX(1000);
+                removeCard(filteredProfiles[activeIndex].userLogin.uid);
               }}
             />
           </div>

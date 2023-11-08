@@ -28,6 +28,7 @@ export function UserAuthContextProvider({ children }) {
   const [uploadedPictures, setUploadedPictures] = useState([]);
   const [allProfiles, setAllProfiles] = useState([]);
   const [topFive, setTopFive] = useState([]);
+  const [leaveX, setLeaveX] = useState(0);
 
   const signUp = async (email, password) => {
     try {
@@ -178,6 +179,8 @@ export function UserAuthContextProvider({ children }) {
         setAllProfiles,
         topFive,
         setTopFive,
+        leaveX,
+        setLeaveX,
       }}
     >
       {children}
