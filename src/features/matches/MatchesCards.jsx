@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import { motion, useMotionValueEvent, useMotionValue } from "framer-motion";
+import { motion } from "framer-motion";
 
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
 

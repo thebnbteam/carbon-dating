@@ -1,8 +1,12 @@
 import { categories } from "../../categoriesconstant";
 import { Button } from "antd";
+import { useNavigate } from "react-router";
 
 export const RecalibrationPage = () => {
   const categoriesArray = Object.keys(categories);
+
+  const navigate = useNavigate();
+
   return (
     <>
       <div className="flex flex-col h-screen">
@@ -10,7 +14,16 @@ export const RecalibrationPage = () => {
         <div className="my-[20%] flex flex-wrap w-full justify-center">
           {categoriesArray.map((categories) => {
             return (
-              <Button className="w-1/3 border border-solid m-1 rounded-md">
+              <Button
+                className="w-1/3 border border-solid m-1 rounded-md"
+                onClick={() => {
+                  navigate("/calibrationcategories", {
+                    state: {
+                      category: categories,
+                    },
+                  });
+                }}
+              >
                 {categories}
               </Button>
             );

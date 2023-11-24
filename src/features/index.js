@@ -7,6 +7,7 @@ import { CalibrationCategories } from "./calibration/CalibrationCategories";
 import { CalibrationTopIntro } from "./calibration/CalibrationTopIntro";
 import { CalibrationTopFive } from "./calibration/CalibrationTopFive";
 import { CalibrationDone } from "./calibration/CalibrationDone";
+import { RecalibrationCategory } from "./calibration/RecalibrationCategory";
 import { RecalibrationPage } from "./calibration/RecalibrationPage";
 import { ProfilePage } from "./profile/ProfilePage";
 import { MatchesPage } from "./matches/MatchesPage";
@@ -36,4 +37,5 @@ export {
   OverallMessages,
   SignUpPage,
   PageNotFound,
+  RecalibrationCategory,
 };

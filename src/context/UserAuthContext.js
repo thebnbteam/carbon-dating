@@ -29,6 +29,7 @@ export function UserAuthContextProvider({ children }) {
   const [allProfiles, setAllProfiles] = useState([]);
   const [topFive, setTopFive] = useState([]);
   const [leaveX, setLeaveX] = useState(0);
+  const [apiData, setApiData] = useState([]);
 
   const signUp = async (email, password) => {
     try {
@@ -181,6 +182,8 @@ export function UserAuthContextProvider({ children }) {
         setTopFive,
         leaveX,
         setLeaveX,
+        apiData,
+        setApiData,
       }}
     >
       {children}
