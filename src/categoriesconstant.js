@@ -217,69 +217,197 @@ export const categories = {
   ],
 
   food: [
-    "Italian",
-    "Japanese",
-    "Indian",
-    "Chinese",
-    "Thai",
-    "American",
-    "Korean",
-    "Greek",
-    "Portuguese",
-    "Jamaican",
+    {
+      name: "Italian",
+    },
+    {
+      name: "Japanese",
+    },
+    {
+      name: "Indian",
+    },
+    {
+      name: "Chinese",
+    },
+    {
+      name: "Thai",
+    },
+    {
+      name: "American",
+    },
+    {
+      name: "Korean",
+    },
+    {
+      name: "Korean",
+    },
+    {
+      name: "Greek",
+    },
+    {
+      name: "Portuguese",
+    },
+    {
+      name: "Jamaican",
+    },
   ],
 
-  drinks: ["Beer", "Cider", "Wine", "Vodka", "Rum", "Gin", "Whisky", "Tequila"],
+  drinks: [
+    {
+      name: "Beer",
+    },
+    {
+      name: "Cider",
+    },
+    {
+      name: "Wine",
+    },
+    {
+      name: "Vodka",
+    },
+    {
+      name: "Rum",
+    },
+    {
+      name: "Gin",
+    },
+    {
+      name: "Whisky",
+    },
+    {
+      name: "Tequila",
+    },
+  ],
 
   places: [
-    "Camping",
-    "Beach",
-    "Europe",
-    "Asia",
-    "America",
-    "South America",
-    "Australia",
-    "Caribbean",
-    "South east asia",
-    "Middle East",
+    {
+      name: "Camping",
+    },
+    {
+      name: "Beach",
+    },
+    {
+      name: "Europe",
+    },
+    {
+      name: "Asia",
+    },
+    {
+      name: "America",
+    },
+    {
+      name: "South America",
+    },
+    {
+      name: "Australia",
+    },
+    {
+      name: "Caribbean",
+    },
+    {
+      name: "South East Asia",
+    },
+    {
+      name: "Middle East",
+    },
   ],
 
   animals: [
-    "Cats",
-    "Dogs",
-    "Fishes",
-    "Lizards",
-    "Frogs",
-    "Birds",
-    "Bears",
-    "Elephants",
-    "Tigers",
-    "Lions",
+    {
+      name: "Cats",
+    },
+    {
+      name: "Dogs",
+    },
+    {
+      name: "Fishes",
+    },
+    {
+      name: "Lizards",
+    },
+    {
+      name: "Frogs",
+    },
+    {
+      name: "Birds",
+    },
+    {
+      name: "Bears",
+    },
+    {
+      name: "Elephants",
+    },
+    {
+      name: "Tigers",
+    },
+    {
+      name: "Lions",
+    },
   ],
 
   sports: [
-    "Soccer",
-    "Basketball",
-    "Football",
-    "Volleyball",
-    "MMA",
-    "Tennis",
-    "Hockey",
-    "Baseball",
-    "Cricket",
-    "Golf",
+    {
+      name: "Soccer",
+    },
+    {
+      name: "Basketball",
+    },
+    {
+      name: "Football",
+    },
+    {
+      name: "Volleyball",
+    },
+    {
+      name: "MMA",
+    },
+    {
+      name: "Tennis",
+    },
+    {
+      name: "Hockey",
+    },
+    {
+      name: "Baseball",
+    },
+    {
+      name: "Cricket",
+    },
+    {
+      name: "Golf",
+    },
   ],
 
   hobbies: [
-    "Cooking",
-    "Video games",
-    "Baking",
-    "Outdoor activities",
-    "Board games",
-    "Reading",
-    "Hiking",
-    "Working out",
-    "Martial arts",
-    "Arts and crafts",
+    {
+      name: "Cooking",
+    },
+    {
+      name: "Video games",
+    },
+    {
+      name: "Baking",
+    },
+    {
+      name: "Outdoor activities",
+    },
+    {
+      name: "Board games",
+    },
+    {
+      name: "Reading",
+    },
+    {
+      name: "Hiking",
+    },
+    {
+      name: "Working out",
+    },
+    {
+      name: "Martial arts",
+    },
+    {
+      name: "Arts and crafts",
+    },
   ],
 };

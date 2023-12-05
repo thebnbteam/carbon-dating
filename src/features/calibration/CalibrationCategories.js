@@ -5,14 +5,13 @@ import { CalibrationTopIntro } from "./CalibrationTopIntro";
 import {
   UpSquareOutlined,
   DownSquareOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined,
+  RightSquareOutlined,
 } from "@ant-design/icons";
 
 import { setDoc, doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { useUserAuth } from "../../context/UserAuthContext";
 import { dataCollection } from "../../firebase/firebase-config";
-import { RecalibrationCategory } from "./RecalibrationCategory";
+import { CategoryPictures } from "./CategoryPictures";
 import { motion, AnimatePresence } from "framer-motion";
 import { foodFetcher } from "../../utilities/apiFetcher";
 
@@ -46,13 +45,16 @@ export const CalibrationCategories = () => {
       setSubCategoryIndex(0);
     }
   }
+  function nextSubcategory() {
+    const swipingIndex = subCategoryIndex + 1;
+    setSubCategoryIndex(swipingIndex);
+  }
 
   function nextArrayIndex() {
     if (
       subCategoryIndex < categories[categoriesArray[mainCategoryIndex]].length
     ) {
-      const swipingIndex = subCategoryIndex + 1;
-      setSubCategoryIndex(swipingIndex);
+      nextSubcategory();
     }
 
     if (
@@ -65,10 +67,10 @@ export const CalibrationCategories = () => {
     }
   }
 
-  async function addCategory() {
+  async function addCategory(categoryData) {
     const selectedCategory = categoriesArray[mainCategoryIndex];
     const selectedSubCategory =
-      categories[categoriesArray[mainCategoryIndex]][subCategoryIndex];
+      categories[categoriesArray[mainCategoryIndex]][subCategoryIndex].name;
     const userDocRef = doc(dataCollection, currentUser.uid);
 
     try {
@@ -77,21 +79,26 @@ export const CalibrationCategories = () => {
       if (!docSnapshot.exists()) {
         await setDoc(userDocRef, {
           categoryLikes: {
-            [selectedCategory]: [selectedSubCategory],
+            [selectedCategory]: { [selectedSubCategory]: [categoryData] },
           },
         });
       } else {
-        await updateDoc(userDocRef, {
-          [`categoryLikes.${selectedCategory}`]:
-            arrayUnion(selectedSubCategory),
-        });
+        const updatedCategoryLikes = {};
+        updatedCategoryLikes[
+          `categoryLikes.${selectedCategory}.${selectedSubCategory}`
+        ] = arrayUnion(categoryData);
+
+        await updateDoc(userDocRef, updatedCategoryLikes);
       }
       setCategoryLikes((prev) => {
-        let newObj = Object.assign({}, prev);
-        if (newObj[selectedCategory] == null) {
-          newObj[selectedCategory] = [];
+        const newObj = { ...prev };
+        if (!newObj[selectedCategory]) {
+          newObj[selectedCategory] = {};
         }
-        newObj[selectedCategory].push(selectedSubCategory);
+        if (!newObj[selectedCategory][selectedSubCategory]) {
+          newObj[selectedCategory][selectedSubCategory] = [];
+        }
+        newObj[selectedCategory][selectedSubCategory].push(categoryData);
         return newObj;
       });
     } catch (error) {
@@ -124,30 +131,38 @@ export const CalibrationCategories = () => {
             />
           )}
           <h2 className="text-center">{categoriesArray[mainCategoryIndex]}</h2>
-          <h2 className="text-center">
-            {upClickState &&
-            categories[categoriesArray[mainCategoryIndex]][subCategoryIndex]
-              ? categories[categoriesArray[mainCategoryIndex]][subCategoryIndex]
-                  .name
-              : null}
-          </h2>
+
+          {upClickState && (
+            <>
+              <h2 className="text-center">
+                {
+                  categories[categoriesArray[mainCategoryIndex]][
+                    subCategoryIndex
+                  ].name
+                }
+              </h2>
+              <div className="flex flex-col">
+                <RightSquareOutlined
+                  className="text-4xl"
+                  onClick={() => {
+                    nextArrayIndex();
+                  }}
+                />
+                <h3 className="text-center">Press to go to next topic</h3>
+              </div>
+            </>
+          )}
           <div>
             {upClickState &&
               categories[categoriesArray[mainCategoryIndex]][
                 subCategoryIndex
               ] && (
-                <RecalibrationCategory
+                <CategoryPictures
                   category={categoriesArray[mainCategoryIndex]}
                   subcategory={
                     categories[categoriesArray[mainCategoryIndex]][
                       subCategoryIndex
                     ].name
-                      ? categories[categoriesArray[mainCategoryIndex]][
-                          subCategoryIndex
-                        ].name
-                      : categories[categoriesArray[mainCategoryIndex]][
-                          subCategoryIndex
-                        ]
                   }
                   subcategoryId={
                     categories[categoriesArray[mainCategoryIndex]][
@@ -160,25 +175,12 @@ export const CalibrationCategories = () => {
                           subCategoryIndex
                         ]
                   }
+                  upClickState={upClickState}
+                  nextSubcategory={nextSubcategory}
+                  addCategory={addCategory}
                 />
               )}
           </div>
-          {upClickState && (
-            <div
-              className={`flex justify-around ${
-                upClickState ? "mt-[400px]" : null
-              }`}
-            >
-              <CloseCircleOutlined
-                className="text-4xl mx-5"
-                onClick={() => {}}
-              />
-              <CheckCircleOutlined
-                className="text-4xl mx-5"
-                onClick={() => {}}
-              />
-            </div>
-          )}
 
           <div className="flex flex-col items-center gap-5">
             <h3 className="text-2xl">skip or next category</h3>

@@ -30,6 +30,7 @@ export function UserAuthContextProvider({ children }) {
   const [topFive, setTopFive] = useState([]);
   const [leaveX, setLeaveX] = useState(0);
   const [apiData, setApiData] = useState([]);
+  const [unsplashApi, setUnsplashApi] = useState([]);
 
   const signUp = async (email, password) => {
     try {
@@ -184,6 +185,8 @@ export function UserAuthContextProvider({ children }) {
         setLeaveX,
         apiData,
         setApiData,
+        unsplashApi,
+        setUnsplashApi,
       }}
     >
       {children}

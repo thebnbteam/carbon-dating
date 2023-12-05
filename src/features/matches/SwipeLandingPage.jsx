@@ -6,11 +6,13 @@ import {
   CloseCircleOutlined,
   UndoOutlined,
 } from "@ant-design/icons";
-import { message } from "antd";
+import { message, Card } from "antd";
 import { useUserAuth } from "../../context/UserAuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { MatchesCard } from "./MatchesCards";
+
+const { Meta } = Card;
 
 export const SwipeLandingPage = () => {
   const { allProfiles, setLeaveX } = useUserAuth();
