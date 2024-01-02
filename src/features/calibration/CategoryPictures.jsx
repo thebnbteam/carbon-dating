@@ -25,7 +25,7 @@ export function CategoryPictures({
 
   const otherArray = ["places", "animals", "sports", "hobbies"];
 
-  const activeIndex = apiData.length - 1;
+  const activeIndex = apiData?.length - 1;
 
   useEffect(() => {
     if (subcategory) {
@@ -53,73 +53,89 @@ export function CategoryPictures({
 
   const apiFetchObj = {
     music: async () => {
-      const result = await axios
-        .get(
+      try {
+        const result = await axios.get(
           `https://ws.audioscrobbler.com/2.0/?method=tag.gettopartists&tag=${subcategory}&limit=20&api_key=46a018726a8b842337a5421352d20f41&format=json`
-        )
-        .then((res) => {
-          setApiData(res.data.topartists.artist);
-        });
-      return result;
+        );
+        setApiData(result.data.topartists.artist);
+        return result;
+      } catch (error) {
+        console.error("Error fetching music:", error);
+        throw error;
+      }
     },
     movie: async () => {
-      const result = await axios
-        .get(
+      try {
+        const result = await axios.get(
           `https://api.themoviedb.org/3/discover/movie?api_key=55d23946c5ee83b77117e381870bede8&include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc&with_genres=${subcategoryId}`
-        )
-        .then((res) => {
-          setApiData(res.data.results);
-        });
+        );
+
+        setApiData(result.data.results);
+        return result;
+      } catch (error) {
+        console.error("Error fetching movies:", error);
+        throw error;
+      }
     },
     shows: async () => {
-      const result = await axios
-        .get(
+      try {
+        const result = await axios.get(
           `https://api.themoviedb.org/3/discover/tv?api_key=55d23946c5ee83b77117e381870bede8&include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc&with_genres=${subcategoryId}`
-        )
-        .then((res) => {
-          setApiData(res.data.results);
-        });
+        );
+        setApiData(result.data.results);
+        return result;
+      } catch (error) {
+        console.error("Error fetching shows:", error);
+        throw error;
+      }
     },
     games: async () => {
-      const result = await axios
-        .get(
+      try {
+        const result = await axios.get(
           `https://api.rawg.io/api/games?genres=${subcategoryId}&key=31cf81a745d74c7ba00c7133434ebb27&page_size=10`
-        )
-        .then((res) => {
-          setApiData(res.data.results);
-        });
+        );
+        setApiData(result.data.results);
+        return result;
+      } catch (error) {
+        console.error("Error fetching games:", error);
+        throw error;
+      }
     },
     food: async () => {
-      const result = await axios
-        .get(
+      try {
+        const result = await axios.get(
           `https://www.themealdb.com/api/json/v1/1/filter.php?a=${subcategory}`
-        )
-        .then((res) => {
-          setApiData(res.data.meals);
-        });
-      return result;
+        );
+        setApiData(result.data.meals);
+        return result;
+      } catch (error) {
+        console.error("Error fetching food:", error);
+        throw error;
+      }
     },
     drinks: async () => {
-      const result = await axios
-        .get(
+      try {
+        const result = await axios.get(
           `https://www.thecocktaildb.com/api/json/v1/1/filter.php?i=${subcategory}`
-        )
-        .then((res) => {
-          setApiData(res.data.drinks);
-        });
-
-      return result;
+        );
+        setApiData(result.data.drinks);
+        return result;
+      } catch (error) {
+        console.error("Error fetching drinks:", error);
+        throw error;
+      }
     },
     other: async () => {
-      const response = await axios
-        .get(
+      try {
+        const response = await axios.get(
           `https://api.unsplash.com/search/photos/?client_id=tRm44LzaejmxcP9IcwBZsYzBWXFLTSlR9yqzPSOzs3c&query=${subcategory}`
-        )
-        .then((res) => {
-          console.log(res);
-          setApiData(res.data.results);
-        });
-      return response;
+        );
+        setApiData(response.data.results);
+        return response;
+      } catch (error) {
+        console.error("Error fetching other data:", error);
+        throw error;
+      }
     },
   };
 
@@ -128,8 +144,8 @@ export function CategoryPictures({
       <ApiSwipeBox
         key={`main-${index}`}
         title={data?.name}
-        image={data?.image[1]["#text"]}
         index={index}
+        image={data?.image[1]["#text"] ? data?.image[1]["#text"] : null}
         activeIndex={activeIndex}
         setTitleAndImage={setTitleAndImage}
         removeCard={removeCard}
@@ -214,7 +230,7 @@ export function CategoryPictures({
     <>
       <div className="flex flex-col items-center relative">
         <AnimatePresence onExitComplete={() => setLeaveX(0)}>
-          {apiData.length > 0 && !otherArray.includes(category)
+          {apiData?.length > 0 && !otherArray.includes(category)
             ? apiData.map(categoryComponents[category])
             : null}
           {otherArray.includes(category) && apiData.length > 0
@@ -318,12 +334,16 @@ export function ApiSwipeBox({
             margin: 10,
           }}
           cover={
-            <Image
-              height={200}
-              width={200}
-              src={image}
-              alt={`${title} picture`}
-            />
+            image ? (
+              <Image
+                height={200}
+                width={200}
+                src={image}
+                alt={`${title} picture`}
+              />
+            ) : (
+              "No Picture Available"
+            )
           }
         >
           <Meta title={title} />
@@ -340,12 +360,14 @@ export function ApiSwipeBox({
             margin: 10,
           }}
           cover={
-            <Image
-              height={200}
-              width={200}
-              src={image}
-              alt={`${title} picture`}
-            />
+            image ? (
+              <Image
+                height={200}
+                width={200}
+                src={image}
+                alt={`${title} picture`}
+              />
+            ) : null
           }
         >
           <Meta title={title} />

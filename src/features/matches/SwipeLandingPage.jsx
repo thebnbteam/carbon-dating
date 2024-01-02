@@ -6,16 +6,17 @@ import {
   CloseCircleOutlined,
   UndoOutlined,
 } from "@ant-design/icons";
-import { message, Card } from "antd";
+import { message } from "antd";
 import { useUserAuth } from "../../context/UserAuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { MatchesCard } from "./MatchesCards";
 
-const { Meta } = Card;
+import { doc, getDoc, setDoc, arrayUnion, updateDoc } from "firebase/firestore";
+import { dataCollection } from "../../firebase/firebase-config";
 
 export const SwipeLandingPage = () => {
-  const { allProfiles, setLeaveX } = useUserAuth();
+  const { allProfiles, setLeaveX, currentUser } = useUserAuth();
   const [profileExpanded, setProfileExpanded] = useState(false);
   const [filteredProfiles, setFilteredProfiles] = useState([]);
   const [removedCards, setRemovedCards] = useState([]);
@@ -26,7 +27,7 @@ export const SwipeLandingPage = () => {
     setProfileExpanded(!profileExpanded);
   }
 
-  const removeCard = (id) => {
+  const removeCard = (id, direction) => {
     const removedCard = filteredProfiles.filter(
       (profiles) => profiles.userLogin.uid === id
     );
@@ -36,6 +37,8 @@ export const SwipeLandingPage = () => {
     setFilteredProfiles((current) =>
       current.filter((card) => card.userLogin.uid !== id)
     );
+
+    addSwiped(direction, removedCard);
   };
 
   const onDragEnd = (info, profileId) => {
@@ -55,10 +58,57 @@ export const SwipeLandingPage = () => {
     if (removedCards.length > 0) {
       const singleRemovedCard = removedCards.pop();
       setFilteredProfiles((current) => [...current, singleRemovedCard]);
+      removeProfileFromSwiped(singleRemovedCard);
     } else {
       message.error(`You didn't swipe yet!`, 2);
     }
   };
+
+  // Match function..
+
+  async function addSwiped(direction, removedProfile) {
+    const userDocRef = doc(dataCollection, currentUser.uid);
+    try {
+      const docSnapshot = await getDoc(userDocRef);
+      if (!docSnapshot.exists()) {
+        await setDoc(userDocRef, {
+          swiped: {
+            [direction]: [...removedProfile],
+          },
+        });
+      } else {
+        await updateDoc(userDocRef, {
+          [`swiped.${direction}`]: arrayUnion(...removedProfile),
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async function removeProfileFromSwiped(profileToRemove) {
+    const userDocRef = doc(dataCollection, currentUser.uid);
+    try {
+      const docSnapshot = await getDoc(userDocRef);
+      if (docSnapshot.exists()) {
+        const userData = docSnapshot.data();
+        const swipedData = userData.swiped;
+        for (const direction in swipedData) {
+          const directionArray = swipedData[direction];
+          const updatedArray = directionArray.filter(
+            (profile) => profile.userLogin.uid !== profileToRemove.userLogin.uid
+          );
+          await updateDoc(userDocRef, {
+            [`swiped.${direction}`]: updatedArray,
+          });
+        }
+      } else {
+        console.log("Document does not exist.");
+      }
+    } catch (error) {
+      console.error("Error removing profile:", error);
+    }
+  }
 
   useEffect(() => {
     const filtered = allProfiles.filter((profile) => {
@@ -67,7 +117,7 @@ export const SwipeLandingPage = () => {
       }
     });
     setFilteredProfiles(filtered);
-  }, []);
+  }, [allProfiles]);
 
   return (
     <>
@@ -132,7 +182,7 @@ export const SwipeLandingPage = () => {
               className="text-4xl mx-5"
               onClick={() => {
                 setLeaveX(-1000);
-                removeCard(filteredProfiles[activeIndex].userLogin.uid);
+                removeCard(filteredProfiles[activeIndex].userLogin.uid, "no");
               }}
             />
 
@@ -147,7 +197,7 @@ export const SwipeLandingPage = () => {
               className="text-4xl mx-5"
               onClick={() => {
                 setLeaveX(1000);
-                removeCard(filteredProfiles[activeIndex].userLogin.uid);
+                removeCard(filteredProfiles[activeIndex].userLogin.uid, "yes");
               }}
             />
           </div>

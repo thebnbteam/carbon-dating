@@ -27,9 +27,11 @@ export const CalibrationCategories = () => {
   let location = useLocation();
 
   useEffect(() => {
-    if (location.state.category) {
+    if (location?.state?.category) {
       let recalibrateIndex = categoriesArray.indexOf(location.state.category);
-      setMainCategoryIndex(recalibrateIndex);
+      setMainCategoryIndex(recalibrateIndex || 0);
+    } else {
+      setMainCategoryIndex(0);
     }
   }, []);
 
@@ -115,21 +117,23 @@ export const CalibrationCategories = () => {
           <h3 className="text-2xl text-center">
             {!upClickState ? "swipe up to expand!" : "swipe down to collapse"}
           </h3>
-          {!upClickState ? (
-            <UpSquareOutlined
-              onClick={() => {
-                categoryExpander();
-              }}
-              className="text-5xl"
-            />
-          ) : (
-            <DownSquareOutlined
-              onClick={() => {
-                categoryExpander();
-              }}
-              className="text-5xl"
-            />
-          )}
+          <div className="flex justify-center">
+            {!upClickState ? (
+              <UpSquareOutlined
+                onClick={() => {
+                  categoryExpander();
+                }}
+                className="text-5xl"
+              />
+            ) : (
+              <DownSquareOutlined
+                onClick={() => {
+                  categoryExpander();
+                }}
+                className="text-5xl"
+              />
+            )}
+          </div>
           <h2 className="text-center">{categoriesArray[mainCategoryIndex]}</h2>
 
           {upClickState && (
@@ -141,7 +145,7 @@ export const CalibrationCategories = () => {
                   ].name
                 }
               </h2>
-              <div className="flex flex-col">
+              <div className="flex flex-col items-center">
                 <RightSquareOutlined
                   className="text-4xl"
                   onClick={() => {

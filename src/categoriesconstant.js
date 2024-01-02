@@ -136,10 +136,6 @@ export const categories = {
       name: "Family",
     },
     {
-      id: 10762,
-      name: "Kids",
-    },
-    {
       id: 9648,
       name: "Mystery",
     },
@@ -234,9 +230,6 @@ export const categories = {
     },
     {
       name: "American",
-    },
-    {
-      name: "Korean",
     },
     {
       name: "Korean",
