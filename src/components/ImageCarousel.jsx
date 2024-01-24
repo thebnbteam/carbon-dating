@@ -10,7 +10,7 @@ export const ImageCarousel = ({
   profilePicture,
   setProfilePicture,
 }) => {
-  const { uploadedPictures, currentUser } = useUserAuth();
+  const { uploadedPictures, userUid } = useUserAuth();
 
   if (!uploadedPictures) {
     return <Spinner />;
@@ -18,7 +18,7 @@ export const ImageCarousel = ({
 
   const deletePicture = async (picturePath) => {
     try {
-      const docRef = doc(dataCollection, currentUser.uid);
+      const docRef = doc(dataCollection, userUid);
       const docSnapshot = await getDoc(docRef);
 
       if (docSnapshot.data().pictures) {

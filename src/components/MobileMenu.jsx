@@ -7,8 +7,13 @@ import { useUserAuth } from "../context/UserAuthContext";
 export function MobileMenu() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const { logOut, authNotificationHandler, userInfo, categoryLikes } =
-    useUserAuth();
+  const {
+    logOut,
+    authNotificationHandler,
+    userInfo,
+    categoryLikes,
+    profilePicture,
+  } = useUserAuth();
 
   const showDrawer = () => {
     setOpen(true);
@@ -53,7 +58,8 @@ export function MobileMenu() {
               Please Finish Your Calibration!
             </Button>
           ) : null}
-          {userInfo && categoryLikes ? (
+
+          {profilePicture ? (
             <>
               <Button
                 block
@@ -91,8 +97,27 @@ export function MobileMenu() {
               >
                 Messages
               </Button>
+              <Button
+                block
+                onClick={() => {
+                  navigate("/tierlistpage");
+                  onClose();
+                }}
+              >
+                Tier List Info
+              </Button>
             </>
-          ) : null}
+          ) : (
+            <Button
+              block
+              onClick={() => {
+                navigate("/profilepage");
+                onClose();
+              }}
+            >
+              Please Set Your Profile Picture!
+            </Button>
+          )}
           <Button
             block
             onClick={() => {

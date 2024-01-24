@@ -232,9 +232,6 @@ export const categories = {
       name: "American",
     },
     {
-      name: "Korean",
-    },
-    {
       name: "Greek",
     },
     {

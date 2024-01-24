@@ -9,12 +9,12 @@ import { dataCollection } from "../../firebase/firebase-config";
 
 export const CalibrationQuestionsPage = () => {
   const [form] = Form.useForm();
-  const { currentUser, setUserInfo } = useUserAuth();
+  const { userUid, setUserInfo } = useUserAuth();
 
   const bioSubmit = async () => {
     const filledInfo = form.getFieldsValue();
     try {
-      const userDocRef = doc(dataCollection, currentUser.uid);
+      const userDocRef = doc(dataCollection, userUid);
       const docSnapshot = await getDoc(userDocRef);
 
       if (docSnapshot.exists()) {

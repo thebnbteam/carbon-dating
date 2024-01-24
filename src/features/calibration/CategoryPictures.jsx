@@ -57,7 +57,7 @@ export function CategoryPictures({
         const result = await axios.get(
           `https://ws.audioscrobbler.com/2.0/?method=tag.gettopartists&tag=${subcategory}&limit=20&api_key=46a018726a8b842337a5421352d20f41&format=json`
         );
-        setApiData(result.data.topartists.artist);
+        setApiData(result?.data?.topartists?.artist);
         return result;
       } catch (error) {
         console.error("Error fetching music:", error);

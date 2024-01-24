@@ -17,6 +17,7 @@ import { DMScreen } from "./messages/DMScreen";
 import { OverallMessages } from "./messages/OverallMessages";
 import { SignUpPage } from "./SignUpPage";
 import { PageNotFound } from "./PageNotFound";
+import { TierListPage } from "./calibration/TierListPage";
 
 export {
   LandingPage,
@@ -38,4 +39,5 @@ export {
   SignUpPage,
   PageNotFound,
   CategoryPictures,
+  TierListPage,
 };

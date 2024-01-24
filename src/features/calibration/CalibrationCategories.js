@@ -12,11 +12,10 @@ import { setDoc, doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { useUserAuth } from "../../context/UserAuthContext";
 import { dataCollection } from "../../firebase/firebase-config";
 import { CategoryPictures } from "./CategoryPictures";
-import { motion, AnimatePresence } from "framer-motion";
-import { foodFetcher } from "../../utilities/apiFetcher";
+import { motion } from "framer-motion";
 
 export const CalibrationCategories = () => {
-  const { currentUser, setCategoryLikes, categoryLikes } = useUserAuth();
+  const { userUid, setCategoryLikes, categoryLikes } = useUserAuth();
   const [mainCategoryIndex, setMainCategoryIndex] = useState(0);
   const [upClickState, setUpClickState] = useState(false);
   const [subCategoryIndex, setSubCategoryIndex] = useState(0);
@@ -73,7 +72,7 @@ export const CalibrationCategories = () => {
     const selectedCategory = categoriesArray[mainCategoryIndex];
     const selectedSubCategory =
       categories[categoriesArray[mainCategoryIndex]][subCategoryIndex].name;
-    const userDocRef = doc(dataCollection, currentUser.uid);
+    const userDocRef = doc(dataCollection, userUid);
 
     try {
       const docSnapshot = await getDoc(userDocRef);
@@ -110,7 +109,7 @@ export const CalibrationCategories = () => {
 
   return (
     <>
-      {mainCategoryIndex === categoriesArray.length - 1 ? (
+      {mainCategoryIndex === categoriesArray.length ? (
         <CalibrationTopIntro />
       ) : (
         <div className="flex flex-col gap-6">
@@ -135,14 +134,25 @@ export const CalibrationCategories = () => {
             )}
           </div>
           <h2 className="text-center">{categoriesArray[mainCategoryIndex]}</h2>
-
+          {upClickState && (
+            <motion.div
+              className="jello-horizontal"
+              animate={{
+                scale: [1, 0.75, 1.25, 0.85, 1.05, 0.95, 1],
+              }}
+              initial={{ scale: 1 }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <h3 className="text-center">Swipe More For Better Match!</h3>
+            </motion.div>
+          )}
           {upClickState && (
             <>
               <h2 className="text-center">
                 {
                   categories[categoriesArray[mainCategoryIndex]][
                     subCategoryIndex
-                  ].name
+                  ]?.name
                 }
               </h2>
               <div className="flex flex-col items-center">
@@ -166,7 +176,7 @@ export const CalibrationCategories = () => {
                   subcategory={
                     categories[categoriesArray[mainCategoryIndex]][
                       subCategoryIndex
-                    ].name
+                    ]?.name
                   }
                   subcategoryId={
                     categories[categoriesArray[mainCategoryIndex]][

@@ -27,8 +27,7 @@ const getBase64 = (file) => {
 };
 
 export const ProfilePage = () => {
-  const { currentUser, userData, setUploadedPictures, categoryLikes } =
-    useUserAuth();
+  const { userUid, setUploadedPictures, categoryLikes } = useUserAuth();
   const navigate = useNavigate();
 
   const [fileList, setFileList] = useState([]);
@@ -74,7 +73,7 @@ export const ProfilePage = () => {
     try {
       await Promise.all(
         fileList.map(async (file) => {
-          const fileName = `pictures-${currentUser.uid}-${file.name}`;
+          const fileName = `pictures-${userUid}-${file.name}`;
           const fileStorageRef = ref(storage, fileName);
           try {
             await uploadBytes(fileStorageRef, file.originFileObj);
@@ -84,7 +83,7 @@ export const ProfilePage = () => {
               path: fileName,
               uploadedAt: Timestamp.now(),
             };
-            const docRef = doc(dataCollection, currentUser.uid);
+            const docRef = doc(dataCollection, userUid);
             const docSnapshot = await getDoc(docRef);
 
             if (docSnapshot.data().pictures) {
@@ -120,8 +119,8 @@ export const ProfilePage = () => {
   };
 
   useEffect(() => {
-    if (currentUser.uid) {
-      const documentRef = doc(dataCollection, currentUser.uid);
+    if (userUid) {
+      const documentRef = doc(dataCollection, userUid);
       const unsubscribe = onSnapshot(documentRef, (docSnapshot) => {
         if (docSnapshot.exists()) {
           const data = docSnapshot.data().pictures;
@@ -134,7 +133,7 @@ export const ProfilePage = () => {
         unsubscribe();
       };
     }
-  }, [currentUser.uid]);
+  }, [userUid]);
 
   return (
     <>
@@ -143,7 +142,7 @@ export const ProfilePage = () => {
         <ProfilePictureBox />
         <div className="mt-10 flex flex-col gap-3">
           <Button size="large" onClick={() => navigate("/recalibrationpage")}>
-            Calibrate Again
+            Recalibrate
           </Button>
           <Button
             size="large"

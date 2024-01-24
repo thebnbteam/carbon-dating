@@ -16,12 +16,10 @@ import { message } from "antd";
 const userAuthContext = createContext();
 
 export function UserAuthContextProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState({});
-
-  const [userData, setUserData] = useState();
+  const [currentUserProfile, setCurrentUserProfile] = useState({});
+  const [userUid, setUserUid] = useState({});
   const [userInfo, setUserInfo] = useState();
   const [categoryLikes, setCategoryLikes] = useState();
-  const [calibrationStatus, setCalibrationStatus] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [imageUpload, setImageUpload] = useState(null);
   const [imageUrls, setImageUrls] = useState([]);
@@ -31,6 +29,7 @@ export function UserAuthContextProvider({ children }) {
   const [leaveX, setLeaveX] = useState(0);
   const [apiData, setApiData] = useState([]);
   const [unsplashApi, setUnsplashApi] = useState([]);
+  const [profilePicture, setProfilePicture] = useState();
 
   const signUp = async (email, password) => {
     try {
@@ -65,7 +64,7 @@ export function UserAuthContextProvider({ children }) {
   const logOut = async () => {
     try {
       await signOut(auth);
-      setCurrentUser(null);
+      setUserUid(null);
       setCategoryLikes(null);
       setUserInfo(null);
       setUploadedPictures([]);
@@ -142,9 +141,9 @@ export function UserAuthContextProvider({ children }) {
     if (user && user.uid) {
       await userLoginCheck(user);
       await getAllProfiles();
-      setCurrentUser({ email: user.email, uid: user.uid });
+      setUserUid(user.uid);
     } else {
-      setCurrentUser(null);
+      setUserUid(null);
     }
   };
 
@@ -155,20 +154,18 @@ export function UserAuthContextProvider({ children }) {
   return (
     <userAuthContext.Provider
       value={{
-        currentUser,
-        setCurrentUser,
+        currentUserProfile,
+        setCurrentUserProfile,
+        userUid,
+        setUserUid,
         logIn,
         logOut,
         signUp,
         googleSignIn,
-        userData,
-        setUserData,
         userInfo,
         setUserInfo,
         categoryLikes,
         setCategoryLikes,
-        calibrationStatus,
-        setCalibrationStatus,
         isLoading,
         setIsLoading,
         imageUpload,
@@ -187,6 +184,8 @@ export function UserAuthContextProvider({ children }) {
         setApiData,
         unsplashApi,
         setUnsplashApi,
+        profilePicture,
+        setProfilePicture,
       }}
     >
       {children}

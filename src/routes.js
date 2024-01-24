@@ -18,6 +18,7 @@ import {
   OverallMessages,
   SignUpPage,
   PageNotFound,
+  TierListPage,
 } from "./features";
 
 export const routes = [
@@ -84,6 +85,10 @@ export const routes = [
   {
     element: <DMScreen />,
     path: "/dmscreen",
+  },
+  {
+    element: <TierListPage />,
+    path: "/tierlistpage",
   },
   {
     element: <OverallMessages />,

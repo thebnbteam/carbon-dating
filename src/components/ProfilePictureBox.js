@@ -8,13 +8,18 @@ import { dataCollection } from "../firebase/firebase-config";
 const { Meta } = Card;
 
 export const ProfilePictureBox = () => {
-  const { currentUser, uploadedPictures } = useUserAuth();
+  const {
+    userUid,
+    uploadedPictures,
+    profilePicture,
+    setProfilePicture,
+    userInfo,
+  } = useUserAuth();
   const [activeTabKey, setActiveTabKey] = useState("main");
-  const [profilePicture, setProfilePicture] = useState();
 
   const pickProfilePicture = async (picture) => {
     try {
-      const docRef = doc(dataCollection, currentUser.uid);
+      const docRef = doc(dataCollection, userUid);
       const docSnapshot = await getDoc(docRef);
 
       if (docSnapshot.exists()) {
@@ -32,8 +37,8 @@ export const ProfilePictureBox = () => {
   };
 
   useEffect(() => {
-    if (currentUser.uid) {
-      const documentRef = doc(dataCollection, currentUser.uid);
+    if (userUid) {
+      const documentRef = doc(dataCollection, userUid);
       const unsubscribe = onSnapshot(documentRef, (docSnapshot) => {
         if (docSnapshot.data().profilePicture) {
           const data = docSnapshot.data().profilePicture;
@@ -46,7 +51,7 @@ export const ProfilePictureBox = () => {
         unsubscribe();
       };
     }
-  }, [currentUser.uid]);
+  }, [userUid]);
 
   const tabList = [
     {
@@ -65,7 +70,7 @@ export const ProfilePictureBox = () => {
         <Image height={250} width={250} src={profilePicture.url} />
       </div>
     ) : (
-      "Please choose a profile picture!"
+      "Please upload pictures and set your profile picture!"
     ),
     pictures: uploadedPictures ? (
       <ImageCarousel
@@ -89,7 +94,7 @@ export const ProfilePictureBox = () => {
       onTabChange={onTabChange}
     >
       <div className="my-3">{contentList[activeTabKey]}</div>
-      <Meta title="Username" description="User Info" />
+      <Meta title={userInfo?.name} />
     </Card>
   );
 };

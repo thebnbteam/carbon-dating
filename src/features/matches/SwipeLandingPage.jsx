@@ -6,7 +6,7 @@ import {
   CloseCircleOutlined,
   UndoOutlined,
 } from "@ant-design/icons";
-import { message } from "antd";
+import { message, Modal, Button, Avatar, Space } from "antd";
 import { useUserAuth } from "../../context/UserAuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -15,13 +15,33 @@ import { MatchesCard } from "./MatchesCards";
 import { doc, getDoc, setDoc, arrayUnion, updateDoc } from "firebase/firestore";
 import { dataCollection } from "../../firebase/firebase-config";
 
+import { categories } from "../../categoriesconstant";
+
 export const SwipeLandingPage = () => {
-  const { allProfiles, setLeaveX, currentUser } = useUserAuth();
+  const { allProfiles, setLeaveX, userUid, currentUserProfile } = useUserAuth();
   const [profileExpanded, setProfileExpanded] = useState(false);
   const [filteredProfiles, setFilteredProfiles] = useState([]);
   const [removedCards, setRemovedCards] = useState([]);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [sameInterest, setSameInterest] = useState([]);
+  const [tier, setTier] = useState("");
+  const [matchedUser, setMatchedUser] = useState();
+
+  const categoriesArray = Object.keys(categories);
 
   const activeIndex = filteredProfiles.length - 1;
+
+  useEffect(() => {
+    const filtered = allProfiles.filter((profile) => {
+      if (
+        profile.profilePicture &&
+        profile.userLogin.uid !== currentUserProfile.userLogin.uid
+      ) {
+        return profile;
+      }
+    });
+    setFilteredProfiles(filtered);
+  }, [allProfiles]);
 
   function profileExpander() {
     setProfileExpanded(!profileExpanded);
@@ -37,8 +57,11 @@ export const SwipeLandingPage = () => {
     setFilteredProfiles((current) =>
       current.filter((card) => card.userLogin.uid !== id)
     );
-
-    addSwiped(direction, removedCard);
+    const { userLogin } = removedCard[0];
+    addSwiped(direction, userLogin.uid);
+    if (direction == "yes") {
+      matchCheck(userLogin);
+    }
   };
 
   const onDragEnd = (info, profileId) => {
@@ -58,27 +81,29 @@ export const SwipeLandingPage = () => {
     if (removedCards.length > 0) {
       const singleRemovedCard = removedCards.pop();
       setFilteredProfiles((current) => [...current, singleRemovedCard]);
-      removeProfileFromSwiped(singleRemovedCard);
+      removeProfileFromSwiped(singleRemovedCard.userLogin.uid);
     } else {
       message.error(`You didn't swipe yet!`, 2);
     }
   };
 
-  // Match function..
+  const modalClose = () => {
+    setModalIsOpen(false);
+  };
 
-  async function addSwiped(direction, removedProfile) {
-    const userDocRef = doc(dataCollection, currentUser.uid);
+  async function addSwiped(direction, uid) {
+    const userDocRef = doc(dataCollection, userUid);
     try {
       const docSnapshot = await getDoc(userDocRef);
       if (!docSnapshot.exists()) {
         await setDoc(userDocRef, {
           swiped: {
-            [direction]: [...removedProfile],
+            [direction]: [uid],
           },
         });
       } else {
         await updateDoc(userDocRef, {
-          [`swiped.${direction}`]: arrayUnion(...removedProfile),
+          [`swiped.${direction}`]: arrayUnion(uid),
         });
       }
     } catch (error) {
@@ -86,8 +111,8 @@ export const SwipeLandingPage = () => {
     }
   }
 
-  async function removeProfileFromSwiped(profileToRemove) {
-    const userDocRef = doc(dataCollection, currentUser.uid);
+  async function removeProfileFromSwiped(uid) {
+    const userDocRef = doc(dataCollection, userUid);
     try {
       const docSnapshot = await getDoc(userDocRef);
       if (docSnapshot.exists()) {
@@ -96,7 +121,7 @@ export const SwipeLandingPage = () => {
         for (const direction in swipedData) {
           const directionArray = swipedData[direction];
           const updatedArray = directionArray.filter(
-            (profile) => profile.userLogin.uid !== profileToRemove.userLogin.uid
+            (profile) => profile !== uid
           );
           await updateDoc(userDocRef, {
             [`swiped.${direction}`]: updatedArray,
@@ -110,14 +135,58 @@ export const SwipeLandingPage = () => {
     }
   }
 
-  useEffect(() => {
-    const filtered = allProfiles.filter((profile) => {
-      if (profile.profilePicture) {
-        return profile;
+  const matchCheck = (swipedProfile) => {
+    const swipedUserProfile = allProfiles.find(
+      (profile) => profile.userLogin.uid == swipedProfile.uid
+    );
+
+    if (swipedUserProfile?.swiped?.yes?.length > 0) {
+      swipedUserProfile.swiped.yes.forEach((uid) => {
+        if (uid == currentUserProfile.userLogin.uid) {
+          setMatchedUser(swipedUserProfile);
+          tierSetter(swipedUserProfile);
+          setModalIsOpen(true);
+        }
+      });
+    }
+  };
+
+  const tierSetter = (swipedProfile) => {
+    const profileSwipedSorted = categorySorter(swipedProfile.categoryLikes);
+    const currentUserLikesSorted = categorySorter(
+      currentUserProfile.categoryLikes
+    );
+    let matched = 0;
+    let sameInterest = [];
+    for (let i = 0; i <= 5; i++) {
+      if (
+        currentUserLikesSorted[i][0] == profileSwipedSorted[i][0] ||
+        currentUserLikesSorted[i][0] == profileSwipedSorted[i - 1][0] ||
+        currentUserLikesSorted[i][0] == profileSwipedSorted[i + 1][0]
+      ) {
+        matched += 1;
+        sameInterest.push(currentUserLikesSorted[i][0]);
       }
+    }
+    if (matched >= 3) {
+      setTier("Silver");
+    } else {
+      setTier("Bronze");
+    }
+    setSameInterest(sameInterest);
+  };
+
+  function categorySorter(categoryObj) {
+    let sortedLowTierObj = {};
+    const likesArray = Object.keys(categoryObj);
+    likesArray.forEach((category) => {
+      sortedLowTierObj[category] = Object.keys(categoryObj[category]).length;
     });
-    setFilteredProfiles(filtered);
-  }, [allProfiles]);
+    const sortedCalibration = Object.entries(sortedLowTierObj).sort(
+      (a, b) => b[1] - a[1]
+    );
+    return sortedCalibration;
+  }
 
   return (
     <>
@@ -149,6 +218,52 @@ export const SwipeLandingPage = () => {
           </motion.div>
         </div>
         <div className="flex flex-col items-center relative">
+          <Modal
+            centered
+            open={modalIsOpen}
+            width={300}
+            closable={true}
+            footer={null}
+            onCancel={modalClose}
+          >
+            <div className="flex flex-col justify-center gap-3 m-2">
+              <h2 className="text-center">It's A {tier} Match!</h2>
+              <div className="flex flex-wrap gap-2">
+                <h3>You share interests in:</h3>
+                {sameInterest.map((interest) => (
+                  <h3 className="capitalize font-bold">{interest}</h3>
+                ))}
+              </div>
+              <div className="flex justify-center gap-3">
+                <Avatar
+                  size={100}
+                  src={
+                    <img
+                      src={currentUserProfile.profilePicture.url}
+                      alt="User's profile picture"
+                    />
+                  }
+                />
+                <Avatar
+                  size={100}
+                  src={
+                    <img
+                      src={matchedUser?.profilePicture.url}
+                      alt="User's profile picture"
+                    />
+                  }
+                />
+              </div>
+              <Button>Message Your Match!</Button>
+              <Button
+                onClick={() => {
+                  modalClose();
+                }}
+              >
+                Back To Swiping
+              </Button>
+            </div>
+          </Modal>
           <AnimatePresence onExitComplete={() => setLeaveX(0)}>
             {filteredProfiles.map((profile, index) => {
               return (

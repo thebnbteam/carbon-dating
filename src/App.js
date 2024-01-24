@@ -6,29 +6,34 @@ import { MobileMenu, Spinner } from "./components";
 
 function App() {
   const {
-    currentUser,
-    userInfo,
-    categoryLikes,
+    userUid,
     isLoading,
     setIsLoading,
     allProfiles,
     setUserInfo,
     setCategoryLikes,
     setTopFive,
+    setUploadedPictures,
+    setProfilePicture,
+    setCurrentUserProfile,
   } = useUserAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (currentUser) {
+    if (userUid) {
       const loggedInUser = allProfiles.find(
-        (profile) => profile.userLogin.uid === currentUser.uid
+        (profile) => profile.userLogin.uid === userUid
       );
+      setCurrentUserProfile(loggedInUser);
       if (loggedInUser) {
-        const { userInfo, categoryLikes, topFive } = loggedInUser;
+        const { userInfo, categoryLikes, topFive, pictures, profilePicture } =
+          loggedInUser;
         if (topFive && userInfo && categoryLikes) {
           setUserInfo(userInfo);
           setCategoryLikes(categoryLikes);
           setTopFive(topFive);
+          setUploadedPictures(pictures || []);
+          setProfilePicture(profilePicture);
           navigate("/profilepage");
         } else if (userInfo && categoryLikes) {
           setCategoryLikes(categoryLikes);
@@ -45,7 +50,7 @@ function App() {
       navigate("/");
     }
     setIsLoading(false);
-  }, [currentUser]);
+  }, [userUid]);
 
   if (isLoading) {
     return <Spinner />;
@@ -54,7 +59,7 @@ function App() {
   return (
     <div className="flex flex-col items-center justify-center w-full">
       <div className="w-full h-screen max-w-md">
-        {currentUser && (
+        {userUid && (
           <div className="flex justify-end">
             <MobileMenu />
           </div>

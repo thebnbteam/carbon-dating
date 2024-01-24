@@ -8,7 +8,7 @@ export const CalibrationLandingPage = () => {
       <div className="flex flex-col items-center gap-10">
         <FingerPrintLogo />
         <h3 className="self-center text-center text-4xl mx-10 mb-20">
-          let's find out more about YOU
+          Let's find out more about YOU
         </h3>
         <Link to="/calibrationquestions">
           <DownSquareOutlined className="text-5xl" />

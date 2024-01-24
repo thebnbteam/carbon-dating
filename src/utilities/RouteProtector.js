@@ -3,9 +3,9 @@ import { useNavigate } from "react-router";
 import { useUserAuth } from "../context/UserAuthContext";
 const RouteProtector = ({ children }) => {
   const navigate = useNavigate();
-  const { currentUser } = useUserAuth();
+  const { userUid } = useUserAuth();
 
-  if (!currentUser) {
+  if (!userUid) {
     navigate("/");
   }
 
