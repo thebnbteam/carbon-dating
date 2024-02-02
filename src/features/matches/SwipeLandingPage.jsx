@@ -73,7 +73,7 @@ export const SwipeLandingPage = () => {
       (info.offset.x > 200 && info.offset.y > -200) ||
       (info.offset.x < -200 && info.offset.y > -200)
     ) {
-      removeCard(profileId);
+      removeCard(profileId, info.offset.x > 200 ? "yes" : "no");
     }
   };
 
@@ -139,15 +139,12 @@ export const SwipeLandingPage = () => {
     const swipedUserProfile = allProfiles.find(
       (profile) => profile.userLogin.uid == swipedProfile.uid
     );
-
-    if (swipedUserProfile?.swiped?.yes?.length > 0) {
-      swipedUserProfile.swiped.yes.forEach((uid) => {
-        if (uid == currentUserProfile.userLogin.uid) {
-          setMatchedUser(swipedUserProfile);
-          tierSetter(swipedUserProfile);
-          setModalIsOpen(true);
-        }
-      });
+    if (
+      swipedUserProfile?.swiped?.yes.includes(currentUserProfile.userLogin.uid)
+    ) {
+      setMatchedUser(swipedUserProfile);
+      tierSetter(swipedUserProfile);
+      setModalIsOpen(true);
     }
   };
 
@@ -156,36 +153,109 @@ export const SwipeLandingPage = () => {
     const currentUserLikesSorted = categorySorter(
       currentUserProfile.categoryLikes
     );
-    let matched = 0;
-    let sameInterest = [];
-    for (let i = 0; i <= 5; i++) {
-      if (
-        currentUserLikesSorted[i][0] == profileSwipedSorted[i][0] ||
-        currentUserLikesSorted[i][0] == profileSwipedSorted[i - 1][0] ||
-        currentUserLikesSorted[i][0] == profileSwipedSorted[i + 1][0]
-      ) {
-        matched += 1;
-        sameInterest.push(currentUserLikesSorted[i][0]);
+
+    let lowMatched = 0;
+    let lowTierInterest = [];
+    let highestTier = null;
+    let tierObj = {
+      Carbon: {
+        count: 0,
+        interest: [],
+        priority: 3,
+      },
+      Platinum: {
+        count: 0,
+        interest: [],
+        priority: 2,
+      },
+      Gold: {
+        count: 0,
+        interest: [],
+        priority: 1,
+      },
+    };
+
+    for (let i = 0; i < 5; i++) {
+      const currentUserCategory = currentUserLikesSorted.lowTier;
+      const profileSwipedCategory = profileSwipedSorted.lowTier;
+
+      if (currentUserCategory && profileSwipedCategory) {
+        if (
+          currentUserCategory[i][0] == profileSwipedCategory[i][0] ||
+          (currentUserCategory[i][0] == profileSwipedCategory[i - 1]?.[0] &&
+            i > 0) ||
+          (currentUserCategory[i][0] == profileSwipedCategory[i + 1]?.[0] &&
+            i < 5)
+        ) {
+          lowMatched += 1;
+          lowTierInterest.push(currentUserCategory[i][0]);
+        }
       }
     }
-    if (matched >= 3) {
-      setTier("Silver");
+
+    if (lowMatched >= 3) {
+      const currHighTier = currentUserLikesSorted.highTier;
+      const swipedUserHighTier = profileSwipedSorted.highTier;
+      Object.keys(currHighTier).forEach((category) => {
+        if (category in swipedUserHighTier) {
+          const difference = Math.abs(
+            currHighTier[category] - swipedUserHighTier[category]
+          );
+          if (difference <= 3) {
+            tierObj.Carbon.count += 1;
+            tierObj.Carbon.interest.push(category);
+          } else if (difference >= 5 && difference <= 10) {
+            tierObj.Platinum.count += 1;
+            tierObj.Platinum.interest.push(category);
+          } else if (difference > 10 && difference <= 15) {
+            tierObj.Gold.count += 1;
+            tierObj.Gold.interest.push(category);
+          }
+        }
+      });
+
+      for (const [tier, details] of Object.entries(tierObj)) {
+        if (
+          !highestTier ||
+          details.count > tierObj[highestTier].count ||
+          (details.count === tierObj[highestTier].count &&
+            details.priority > tierObj[highestTier].priority)
+        ) {
+          highestTier = tier;
+        }
+      }
+      if (!highestTier) {
+        setTier("Silver");
+        setSameInterest(lowTierInterest);
+      } else {
+        console.log(tierObj);
+        setTier(highestTier);
+        setSameInterest(tierObj[highestTier].interest);
+      }
     } else {
       setTier("Bronze");
+      setSameInterest(lowTierInterest);
     }
-    setSameInterest(sameInterest);
   };
 
   function categorySorter(categoryObj) {
-    let sortedLowTierObj = {};
+    let lowTierObj = {};
+    let highTierObj = {};
     const likesArray = Object.keys(categoryObj);
+
     likesArray.forEach((category) => {
-      sortedLowTierObj[category] = Object.keys(categoryObj[category]).length;
+      let subCategoryArray = Object.keys(categoryObj[category]);
+      subCategoryArray.forEach((subcategory) => {
+        highTierObj[subcategory] = categoryObj[category][subcategory].length;
+      });
     });
-    const sortedCalibration = Object.entries(sortedLowTierObj).sort(
-      (a, b) => b[1] - a[1]
-    );
-    return sortedCalibration;
+
+    const highTier = highTierObj;
+    likesArray.forEach((category) => {
+      lowTierObj[category] = Object.keys(categoryObj[category]).length;
+    });
+    const lowTier = Object.entries(lowTierObj).sort((a, b) => b[1] - a[1]);
+    return { highTier, lowTier };
   }
 
   return (
@@ -224,7 +294,11 @@ export const SwipeLandingPage = () => {
             width={300}
             closable={true}
             footer={null}
-            onCancel={modalClose}
+            onCancel={() => {
+              modalClose();
+              setTier("");
+              setSameInterest([]);
+            }}
           >
             <div className="flex flex-col justify-center gap-3 m-2">
               <h2 className="text-center">It's A {tier} Match!</h2>
