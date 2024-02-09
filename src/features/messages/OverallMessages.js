@@ -1,4 +1,3 @@
-import { MatchesDisplayBox } from "../../components";
 import { Input, Space, Card, Row, Col } from "antd";
 
 const { Search } = Input;
@@ -13,18 +12,11 @@ export const OverallMessages = () => {
         <Search size="large" placeholder="Search matches" allowClear />
         <Card title="Activities" className="mt-10">
           {/* Map over the matches */}
-          <Space size={[10]} wrap>
-            <MatchesDisplayBox size={100} />
-            <MatchesDisplayBox size={100} />
-            <MatchesDisplayBox size={100} />
-            <MatchesDisplayBox size={100} />
-          </Space>
+          <Space size={[10]} wrap></Space>
         </Card>
         <Card title="Messages" className="mt-10">
           <Row align="middle">
-            <Col flex="100px">
-              <MatchesDisplayBox size={100} />
-            </Col>
+            <Col flex="100px"></Col>
             <Col flex="auto">
               <Card
                 title="Latest Message"

@@ -6,7 +6,7 @@ import {
   CloseCircleOutlined,
   UndoOutlined,
 } from "@ant-design/icons";
-import { message, Modal, Button, Avatar, Space } from "antd";
+import { message, Modal, Button, Avatar } from "antd";
 import { useUserAuth } from "../../context/UserAuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -15,10 +15,16 @@ import { MatchesCard } from "./MatchesCards";
 import { doc, getDoc, setDoc, arrayUnion, updateDoc } from "firebase/firestore";
 import { dataCollection } from "../../firebase/firebase-config";
 
-import { categories } from "../../categoriesconstant";
+import { categories } from "../../constant/categoriesconstant";
 
 export const SwipeLandingPage = () => {
-  const { allProfiles, setLeaveX, userUid, currentUserProfile } = useUserAuth();
+  const {
+    allProfiles,
+    setLeaveX,
+    userUid,
+    currentUserProfile,
+    nonSwipedUsers,
+  } = useUserAuth();
   const [profileExpanded, setProfileExpanded] = useState(false);
   const [filteredProfiles, setFilteredProfiles] = useState([]);
   const [removedCards, setRemovedCards] = useState([]);
@@ -26,13 +32,34 @@ export const SwipeLandingPage = () => {
   const [sameInterest, setSameInterest] = useState([]);
   const [tier, setTier] = useState("");
   const [matchedUser, setMatchedUser] = useState();
-
   const categoriesArray = Object.keys(categories);
 
   const activeIndex = filteredProfiles.length - 1;
 
   useEffect(() => {
-    const filtered = allProfiles.filter((profile) => {
+    if (nonSwipedUsers.length > 0) {
+      filterProfile(nonSwipedUsers);
+    } else {
+      filterProfile(allProfiles);
+    }
+  }, [nonSwipedUsers, allProfiles]);
+
+  const filterProfile = (profiles) => {
+    const filteredWithSwipe = [];
+    const filteredWithoutSwipe = [];
+
+    profiles.forEach((profile) => {
+      if (
+        profile?.swiped?.yes.length > 0 &&
+        profile.swiped.yes.includes(userUid)
+      ) {
+        filteredWithSwipe.push(profile);
+      } else {
+        filteredWithoutSwipe.push(profile);
+      }
+    });
+    const filtered = [...filteredWithoutSwipe, ...filteredWithSwipe];
+    const withProfilePic = filtered.filter((profile) => {
       if (
         profile.profilePicture &&
         profile.userLogin.uid !== currentUserProfile.userLogin.uid
@@ -40,8 +67,8 @@ export const SwipeLandingPage = () => {
         return profile;
       }
     });
-    setFilteredProfiles(filtered);
-  }, [allProfiles]);
+    setFilteredProfiles(withProfilePic);
+  };
 
   function profileExpander() {
     setProfileExpanded(!profileExpanded);
@@ -228,7 +255,6 @@ export const SwipeLandingPage = () => {
         setTier("Silver");
         setSameInterest(lowTierInterest);
       } else {
-        console.log(tierObj);
         setTier(highestTier);
         setSameInterest(tierObj[highestTier].interest);
       }

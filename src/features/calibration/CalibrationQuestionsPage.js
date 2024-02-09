@@ -1,5 +1,5 @@
 import { FingerPrintLogo } from "../../components";
-import { bioQuestions } from "../../bioquestionconstant";
+import { bioQuestions } from "../../constant/bioquestionconstant";
 import { Link } from "react-router-dom";
 import { Form, Input, message } from "antd";
 import { SubmitButton } from "../../components";

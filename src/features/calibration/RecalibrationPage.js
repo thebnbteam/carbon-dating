@@ -1,4 +1,4 @@
-import { categories } from "../../categoriesconstant";
+import { categories } from "../../constant/categoriesconstant";
 import { Button } from "antd";
 import { useNavigate } from "react-router";
 

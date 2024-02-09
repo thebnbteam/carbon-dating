@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router";
 import { useUserAuth } from "./context/UserAuthContext";
 import { routes } from "./routes";
 import { MobileMenu, Spinner } from "./components";
+import { getDocs, where, query } from "firebase/firestore";
+import { dataCollection } from "./firebase/firebase-config";
 
 function App() {
   const {
@@ -16,8 +18,27 @@ function App() {
     setUploadedPictures,
     setProfilePicture,
     setCurrentUserProfile,
+    setNonSwipedUsers,
   } = useUserAuth();
   const navigate = useNavigate();
+
+  const fetchNotSwipedUsers = async (swipedYesUsers) => {
+    try {
+      if (swipedYesUsers.length > 0) {
+        const qFiltered = query(
+          dataCollection,
+          where("userLogin.uid", "not-in", swipedYesUsers)
+        );
+        const filteredSnapshot = await getDocs(qFiltered);
+        const documents = filteredSnapshot.docs.map((doc) => ({
+          ...doc.data(),
+        }));
+        setNonSwipedUsers(documents);
+      }
+    } catch (error) {
+      console.error("Error", error);
+    }
+  };
 
   useEffect(() => {
     if (userUid) {
@@ -26,9 +47,18 @@ function App() {
       );
       setCurrentUserProfile(loggedInUser);
       if (loggedInUser) {
-        const { userInfo, categoryLikes, topFive, pictures, profilePicture } =
-          loggedInUser;
+        const {
+          swiped,
+          userInfo,
+          categoryLikes,
+          topFive,
+          pictures,
+          profilePicture,
+        } = loggedInUser;
         if (topFive && userInfo && categoryLikes) {
+          if (swiped?.yes.length > 0) {
+            fetchNotSwipedUsers(swiped.yes);
+          }
           setUserInfo(userInfo);
           setCategoryLikes(categoryLikes);
           setTopFive(topFive);

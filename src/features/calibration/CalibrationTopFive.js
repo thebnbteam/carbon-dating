@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FingerPrintLogo } from "../../components";
-import { categories } from "../../categoriesconstant";
+import { categories } from "../../constant/categoriesconstant";
 import { useNavigate } from "react-router";
 import { LeftSquareOutlined, RightSquareOutlined } from "@ant-design/icons";
 import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "firebase/firestore";

@@ -29,6 +29,7 @@ export function UserAuthContextProvider({ children }) {
   const [leaveX, setLeaveX] = useState(0);
   const [apiData, setApiData] = useState([]);
   const [unsplashApi, setUnsplashApi] = useState([]);
+  const [nonSwipedUsers, setNonSwipedUsers] = useState([]);
   const [profilePicture, setProfilePicture] = useState();
 
   const signUp = async (email, password) => {
@@ -120,6 +121,7 @@ export function UserAuthContextProvider({ children }) {
       const docSnapshot = await getDoc(userDocRef);
       if (docSnapshot.exists()) {
         const userData = docSnapshot.data();
+        console.log(userData);
         setUserInfo((prevUserInfo) => userData.userInfo || prevUserInfo);
         setCategoryLikes(
           (prevCategoryLikes) => userData.categoryLikes || prevCategoryLikes
@@ -186,6 +188,8 @@ export function UserAuthContextProvider({ children }) {
         setUnsplashApi,
         profilePicture,
         setProfilePicture,
+        nonSwipedUsers,
+        setNonSwipedUsers,
       }}
     >
       {children}

@@ -11,9 +11,7 @@ import {
   CalibrationDone,
   RecalibrationPage,
   ProfilePage,
-  MatchesPage,
   SwipeLandingPage,
-  MatchFound,
   DMScreen,
   OverallMessages,
   SignUpPage,
@@ -71,16 +69,8 @@ export const routes = [
     path: "/profilepage",
   },
   {
-    element: <MatchesPage />,
-    path: "/matchespage",
-  },
-  {
     element: <SwipeLandingPage />,
     path: "/swipelandingpage",
-  },
-  {
-    element: <MatchFound />,
-    path: "/matchfound",
   },
   {
     element: <DMScreen />,

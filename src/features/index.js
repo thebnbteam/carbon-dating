@@ -10,9 +10,7 @@ import { CalibrationDone } from "./calibration/CalibrationDone";
 import { CategoryPictures } from "./calibration/CategoryPictures";
 import { RecalibrationPage } from "./calibration/RecalibrationPage";
 import { ProfilePage } from "./profile/ProfilePage";
-import { MatchesPage } from "./matches/MatchesPage";
 import { SwipeLandingPage } from "./matches/SwipeLandingPage";
-import { MatchFound } from "./matches/MatchFound";
 import { DMScreen } from "./messages/DMScreen";
 import { OverallMessages } from "./messages/OverallMessages";
 import { SignUpPage } from "./SignUpPage";
@@ -31,9 +29,7 @@ export {
   CalibrationDone,
   RecalibrationPage,
   ProfilePage,
-  MatchesPage,
   SwipeLandingPage,
-  MatchFound,
   DMScreen,
   OverallMessages,
   SignUpPage,
