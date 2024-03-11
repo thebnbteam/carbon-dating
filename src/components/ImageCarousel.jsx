@@ -5,11 +5,7 @@ import { Spinner } from "./Spinner";
 import { doc, getDoc, updateDoc, deleteField } from "firebase/firestore";
 import { dataCollection } from "../firebase/firebase-config";
 
-export const ImageCarousel = ({
-  pickProfilePicture,
-  profilePicture,
-  setProfilePicture,
-}) => {
+export const ImageCarousel = ({ pickProfilePicture, setProfilePicture }) => {
   const { uploadedPictures, userUid } = useUserAuth();
 
   if (!uploadedPictures) {

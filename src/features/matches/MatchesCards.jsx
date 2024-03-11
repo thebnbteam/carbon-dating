@@ -26,10 +26,6 @@ export const MatchesCard = ({
     return newZindex;
   };
 
-  const handleElementClick = (index) => {
-    setSelectedElement(index);
-  };
-
   return activeIndex === index ? (
     <>
       <motion.div

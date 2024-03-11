@@ -9,7 +9,7 @@ import { dataCollection } from "../../firebase/firebase-config";
 
 export const CalibrationTopFive = () => {
   const navigate = useNavigate();
-  const { userUid, setTopFive, topFive } = useUserAuth();
+  const { userUid, setTopFive } = useUserAuth();
   const [topFiveIndex, setTopFiveIndex] = useState(0);
   const categoriesArray = Object.keys(categories);
   let firstTopFive = categoriesArray[topFiveIndex];

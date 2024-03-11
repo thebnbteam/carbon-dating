@@ -21,16 +21,14 @@ export function UserAuthContextProvider({ children }) {
   const [userInfo, setUserInfo] = useState();
   const [categoryLikes, setCategoryLikes] = useState();
   const [isLoading, setIsLoading] = useState(true);
-  const [imageUpload, setImageUpload] = useState(null);
-  const [imageUrls, setImageUrls] = useState([]);
   const [uploadedPictures, setUploadedPictures] = useState([]);
   const [allProfiles, setAllProfiles] = useState([]);
   const [topFive, setTopFive] = useState([]);
   const [leaveX, setLeaveX] = useState(0);
   const [apiData, setApiData] = useState([]);
-  const [unsplashApi, setUnsplashApi] = useState([]);
   const [nonSwipedUsers, setNonSwipedUsers] = useState([]);
   const [profilePicture, setProfilePicture] = useState();
+  const [roomNumber, setRoomNumber] = useState("");
 
   const signUp = async (email, password) => {
     try {
@@ -69,6 +67,7 @@ export function UserAuthContextProvider({ children }) {
       setCategoryLikes(null);
       setUserInfo(null);
       setUploadedPictures([]);
+      setProfilePicture(null);
       message.success("Logged out successfully.", 2);
     } catch (error) {
       message.error(`Log out error: ${error.message}`, 2);
@@ -121,7 +120,6 @@ export function UserAuthContextProvider({ children }) {
       const docSnapshot = await getDoc(userDocRef);
       if (docSnapshot.exists()) {
         const userData = docSnapshot.data();
-        console.log(userData);
         setUserInfo((prevUserInfo) => userData.userInfo || prevUserInfo);
         setCategoryLikes(
           (prevCategoryLikes) => userData.categoryLikes || prevCategoryLikes
@@ -170,10 +168,6 @@ export function UserAuthContextProvider({ children }) {
         setCategoryLikes,
         isLoading,
         setIsLoading,
-        imageUpload,
-        setImageUpload,
-        imageUrls,
-        setImageUrls,
         uploadedPictures,
         setUploadedPictures,
         allProfiles,
@@ -184,12 +178,12 @@ export function UserAuthContextProvider({ children }) {
         setLeaveX,
         apiData,
         setApiData,
-        unsplashApi,
-        setUnsplashApi,
         profilePicture,
         setProfilePicture,
         nonSwipedUsers,
         setNonSwipedUsers,
+        roomNumber,
+        setRoomNumber,
       }}
     >
       {children}

@@ -3,7 +3,7 @@ import { bioQuestions } from "../../constant/bioquestionconstant";
 import { Link } from "react-router-dom";
 import { Form, Input, message } from "antd";
 import { SubmitButton } from "../../components";
-import { setDoc, doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useUserAuth } from "../../context/UserAuthContext";
 import { dataCollection } from "../../firebase/firebase-config";
 

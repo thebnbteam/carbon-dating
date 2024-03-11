@@ -4,8 +4,6 @@ import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useUserAuth } from "../../context/UserAuthContext";
-import { Spinner } from "../../components";
-import { click } from "@testing-library/user-event/dist/click";
 
 const { Meta } = Card;
 
@@ -18,8 +16,6 @@ export function CategoryPictures({
   addCategory,
 }) {
   const { setApiData, apiData, setLeaveX } = useUserAuth();
-  const [dataArray, setDataArray] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [titleAndImage, setTitleAndImage] = useState({ title: "", image: "" });
   const [removedCards, setRemovedCards] = useState([]);
 

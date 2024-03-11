@@ -12,10 +12,22 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { MatchesCard } from "./MatchesCards";
 
-import { doc, getDoc, setDoc, arrayUnion, updateDoc } from "firebase/firestore";
-import { dataCollection } from "../../firebase/firebase-config";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  arrayUnion,
+  updateDoc,
+  serverTimestamp,
+} from "firebase/firestore";
+import {
+  dataCollection,
+  messageCollection,
+} from "../../firebase/firebase-config";
 
-import { categories } from "../../constant/categoriesconstant";
+import { useNavigate } from "react-router";
+
+import { v1 as uuidv1 } from "uuid";
 
 export const SwipeLandingPage = () => {
   const {
@@ -24,7 +36,10 @@ export const SwipeLandingPage = () => {
     userUid,
     currentUserProfile,
     nonSwipedUsers,
+    roomNumber,
+    setRoomNumber,
   } = useUserAuth();
+  const navigate = useNavigate();
   const [profileExpanded, setProfileExpanded] = useState(false);
   const [filteredProfiles, setFilteredProfiles] = useState([]);
   const [removedCards, setRemovedCards] = useState([]);
@@ -32,16 +47,11 @@ export const SwipeLandingPage = () => {
   const [sameInterest, setSameInterest] = useState([]);
   const [tier, setTier] = useState("");
   const [matchedUser, setMatchedUser] = useState();
-  const categoriesArray = Object.keys(categories);
 
   const activeIndex = filteredProfiles.length - 1;
-
   useEffect(() => {
-    if (nonSwipedUsers.length > 0) {
-      filterProfile(nonSwipedUsers);
-    } else {
-      filterProfile(allProfiles);
-    }
+    const filterBy = nonSwipedUsers.length ? nonSwipedUsers : allProfiles;
+    filterProfile(filterBy);
   }, [nonSwipedUsers, allProfiles]);
 
   const filterProfile = (profiles) => {
@@ -253,13 +263,16 @@ export const SwipeLandingPage = () => {
       }
       if (!highestTier) {
         setTier("Silver");
+        addMatched(swipedProfile, "Silver");
         setSameInterest(lowTierInterest);
       } else {
         setTier(highestTier);
+        addMatched(swipedProfile, highestTier);
         setSameInterest(tierObj[highestTier].interest);
       }
     } else {
       setTier("Bronze");
+      addMatched(swipedProfile, "Bronze");
       setSameInterest(lowTierInterest);
     }
   };
@@ -282,6 +295,39 @@ export const SwipeLandingPage = () => {
     });
     const lowTier = Object.entries(lowTierObj).sort((a, b) => b[1] - a[1]);
     return { highTier, lowTier };
+  }
+
+  async function addMatched(swipedProfile, tierSet) {
+    const userDocRef = doc(dataCollection, userUid);
+    const swipedRef = doc(dataCollection, swipedProfile.userLogin.uid);
+    const roomNo = uuidv1();
+
+    try {
+      const docSnapshot = await getDoc(userDocRef);
+      const swipedUserSnapshot = await getDoc(swipedRef);
+      const messageRef = doc(messageCollection, roomNo);
+      setRoomNumber(roomNo);
+      if (docSnapshot.exists()) {
+        await updateDoc(userDocRef, {
+          matched: arrayUnion({
+            rank: tierSet,
+            uid: swipedProfile.userLogin.uid,
+            room: roomNo,
+          }),
+        });
+      }
+      if (swipedUserSnapshot.exists()) {
+        await updateDoc(swipedRef, {
+          matched: arrayUnion({
+            rank: tierSet,
+            uid: userUid,
+            room: roomNo,
+          }),
+        });
+      }
+    } catch (error) {
+      console.error("Error Adding Matched", error);
+    }
   }
 
   return (
@@ -354,7 +400,15 @@ export const SwipeLandingPage = () => {
                   }
                 />
               </div>
-              <Button>Message Your Match!</Button>
+              <Button
+                onClick={() => {
+                  navigate(
+                    `/chatroom/${roomNumber}/${matchedUser.userLogin.uid}`
+                  );
+                }}
+              >
+                Message Your Match!
+              </Button>
               <Button
                 onClick={() => {
                   modalClose();

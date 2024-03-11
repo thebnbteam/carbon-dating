@@ -11,11 +11,12 @@ import { CategoryPictures } from "./calibration/CategoryPictures";
 import { RecalibrationPage } from "./calibration/RecalibrationPage";
 import { ProfilePage } from "./profile/ProfilePage";
 import { SwipeLandingPage } from "./matches/SwipeLandingPage";
-import { DMScreen } from "./messages/DMScreen";
+import { ChatRoom } from "./messages/ChatRoom";
 import { OverallMessages } from "./messages/OverallMessages";
 import { SignUpPage } from "./SignUpPage";
 import { PageNotFound } from "./PageNotFound";
 import { TierListPage } from "./calibration/TierListPage";
+import { MatchesPage } from "./matches/MatchesPage";
 
 export {
   LandingPage,
@@ -30,10 +31,11 @@ export {
   RecalibrationPage,
   ProfilePage,
   SwipeLandingPage,
-  DMScreen,
+  ChatRoom,
   OverallMessages,
   SignUpPage,
   PageNotFound,
   CategoryPictures,
   TierListPage,
+  MatchesPage,
 };

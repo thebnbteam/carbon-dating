@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ProfilePictureBox } from "../../components";
-import { Button, Alert, message, Upload, Form, Modal } from "antd";
+import { Button, message, Upload, Form, Modal } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { useUserAuth } from "../../context/UserAuthContext";
 import { useNavigate } from "react-router";
@@ -9,7 +9,6 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import {
   Timestamp,
   doc,
-  setDoc,
   updateDoc,
   getDoc,
   arrayUnion,
@@ -27,11 +26,10 @@ const getBase64 = (file) => {
 };
 
 export const ProfilePage = () => {
-  const { userUid, setUploadedPictures, categoryLikes } = useUserAuth();
+  const { userUid, setUploadedPictures } = useUserAuth();
   const navigate = useNavigate();
 
   const [fileList, setFileList] = useState([]);
-  const [submitting, setSubmitting] = useState(false);
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState(false);
   const [previewTitle, setPreviewTitle] = useState(false);
@@ -61,7 +59,6 @@ export const ProfilePage = () => {
     if (!file.url && !file.preview) {
       file.preview = await getBase64(file.originFileObj);
     }
-
     setPreviewImage(file.url || file.preview);
     setPreviewVisible(true);
     setPreviewTitle(
@@ -70,51 +67,54 @@ export const ProfilePage = () => {
   };
 
   const handleFinish = async () => {
-    try {
-      await Promise.all(
-        fileList.map(async (file) => {
-          const fileName = `pictures-${userUid}-${file.name}`;
-          const fileStorageRef = ref(storage, fileName);
-          try {
-            await uploadBytes(fileStorageRef, file.originFileObj);
-            const downloadUrl = await getDownloadURL(fileStorageRef);
-            const pictures = {
-              url: downloadUrl,
-              path: fileName,
-              uploadedAt: Timestamp.now(),
-            };
-            const docRef = doc(dataCollection, userUid);
-            const docSnapshot = await getDoc(docRef);
+    if (fileList.length > 0) {
+      try {
+        await Promise.all(
+          fileList.map(async (file) => {
+            const fileName = `pictures-${userUid}-${file.name}`;
+            const fileStorageRef = ref(storage, fileName);
+            try {
+              await uploadBytes(fileStorageRef, file.originFileObj);
+              const downloadUrl = await getDownloadURL(fileStorageRef);
+              const pictures = {
+                url: downloadUrl,
+                path: fileName,
+                uploadedAt: Timestamp.now(),
+              };
+              const docRef = doc(dataCollection, userUid);
+              const docSnapshot = await getDoc(docRef);
 
-            if (docSnapshot.data().pictures) {
-              const existingPictures = docSnapshot.data().pictures || [];
-              const pictureExists = existingPictures.filter(
-                (existingPicture) => {
-                  return existingPicture.path === pictures.path;
+              if (docSnapshot.data().pictures) {
+                const existingPictures = docSnapshot.data().pictures || [];
+                const pictureExists = existingPictures.filter(
+                  (existingPicture) => {
+                    return existingPicture.path === pictures.path;
+                  }
+                );
+                if (pictureExists.length > 0) {
+                  message.error(`This picture exists!`, 2);
+                  setFileList([]);
+                } else if (pictureExists.length == 0) {
+                  await updateDoc(docRef, {
+                    pictures: arrayUnion(pictures),
+                  });
+                  setFileList([]);
                 }
-              );
-              if (pictureExists.length > 0) {
-                message.error(`This picture exists!`, 2);
-                setFileList([]);
-              } else if (pictureExists.length == 0) {
-                await updateDoc(docRef, {
-                  pictures: arrayUnion(pictures),
-                });
+              } else {
+                await updateDoc(docRef, { pictures: [pictures] });
                 setFileList([]);
               }
-            } else {
-              await updateDoc(docRef, { pictures: [pictures] });
-              setFileList([]);
+            } catch (error) {
+              console.log(error);
             }
-          } catch (error) {
-            console.log(error);
-          }
-        })
-      );
-      message.success(`Images added successfully.`, 2);
-    } catch (error) {
-      console.log(error);
-      message.error(`Error adding images`, 2);
+          })
+        );
+        message.success(`Images added successfully.`, 2);
+      } catch (error) {
+        message.error(`Error adding images`, 2);
+      }
+    } else {
+      message.error("Please choose pictures", 2);
     }
   };
 
@@ -165,6 +165,20 @@ export const ProfilePage = () => {
                 Upload Pictures
               </Button>
             </Upload>
+            <Modal
+              open={previewVisible}
+              title={previewTitle}
+              footer={null}
+              onCancel={handleCancel}
+            >
+              <img
+                alt="example"
+                style={{
+                  width: "100%",
+                }}
+                src={previewImage}
+              />
+            </Modal>
             <Button htmlType="submit" className="my-[10px]" size="large" block>
               Upload
             </Button>

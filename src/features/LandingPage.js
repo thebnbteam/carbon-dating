@@ -1,7 +1,6 @@
 import { FingerPrintLogo } from "../components";
 import { Link } from "react-router-dom";
-import { Button, Alert } from "antd";
-import { useUserAuth } from "../context/UserAuthContext";
+import { Button } from "antd";
 
 export const LandingPage = () => {
   return (

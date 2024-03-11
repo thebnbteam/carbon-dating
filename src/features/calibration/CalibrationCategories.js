@@ -15,12 +15,10 @@ import { CategoryPictures } from "./CategoryPictures";
 import { motion } from "framer-motion";
 
 export const CalibrationCategories = () => {
-  const { userUid, setCategoryLikes, categoryLikes } = useUserAuth();
+  const { userUid, setCategoryLikes } = useUserAuth();
   const [mainCategoryIndex, setMainCategoryIndex] = useState(0);
   const [upClickState, setUpClickState] = useState(false);
   const [subCategoryIndex, setSubCategoryIndex] = useState(0);
-  const [recalibrateCategory, setRecalibrateCategory] = useState("");
-  const [fetchedData, setFetchedData] = useState([]);
   const categoriesArray = Object.keys(categories);
 
   let location = useLocation();

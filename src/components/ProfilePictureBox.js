@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, message, Image } from "antd";
 import { ImageCarousel } from "./ImageCarousel";
 import { useUserAuth } from "../context/UserAuthContext";
-import { doc, getDoc, onSnapshot, updateDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { dataCollection } from "../firebase/firebase-config";
 
 const { Meta } = Card;

@@ -7,13 +7,7 @@ import { useUserAuth } from "../context/UserAuthContext";
 export function MobileMenu() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const {
-    logOut,
-    authNotificationHandler,
-    userInfo,
-    categoryLikes,
-    profilePicture,
-  } = useUserAuth();
+  const { logOut, userInfo, categoryLikes, profilePicture } = useUserAuth();
 
   const showDrawer = () => {
     setOpen(true);
@@ -28,7 +22,7 @@ export function MobileMenu() {
       await logOut();
       navigate("/");
     } catch (err) {
-      authNotificationHandler("error", "Error", err.message);
+      console.error("Error:", err.message);
     }
   };
 
@@ -82,7 +76,7 @@ export function MobileMenu() {
               <Button
                 block
                 onClick={() => {
-                  navigate("/matchespage");
+                  navigate("/matches");
                   onClose();
                 }}
               >
@@ -107,7 +101,7 @@ export function MobileMenu() {
                 Tier List Info
               </Button>
             </>
-          ) : (
+          ) : !profilePicture && userInfo && categoryLikes ? (
             <Button
               block
               onClick={() => {
@@ -117,7 +111,7 @@ export function MobileMenu() {
             >
               Please Set Your Profile Picture!
             </Button>
-          )}
+          ) : null}
           <Button
             block
             onClick={() => {

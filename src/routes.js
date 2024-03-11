@@ -12,11 +12,12 @@ import {
   RecalibrationPage,
   ProfilePage,
   SwipeLandingPage,
-  DMScreen,
+  ChatRoom,
   OverallMessages,
   SignUpPage,
   PageNotFound,
   TierListPage,
+  MatchesPage,
 } from "./features";
 
 export const routes = [
@@ -73,8 +74,12 @@ export const routes = [
     path: "/swipelandingpage",
   },
   {
-    element: <DMScreen />,
-    path: "/dmscreen",
+    element: <MatchesPage />,
+    path: "/matches",
+  },
+  {
+    element: <ChatRoom />,
+    path: "/chatroom/:roomNumber/:matchedUser",
   },
   {
     element: <TierListPage />,

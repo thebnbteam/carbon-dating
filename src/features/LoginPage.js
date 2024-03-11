@@ -63,7 +63,7 @@ export const LoginPage = () => {
             </a>
           </Link>
         </Form.Item>
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-1">
           <Button
             type="default"
             htmlType="submit"
@@ -72,6 +72,15 @@ export const LoginPage = () => {
             }}
           >
             Login
+          </Button>
+          <Button
+            type="default"
+            htmlType="submit"
+            onClick={() => {
+              googleSignIn();
+            }}
+          >
+            Sign In With Google
           </Button>
           <div className="flex justify-center">
             <Link to="/signuppage">

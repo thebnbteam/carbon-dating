@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Form, Input, Checkbox, Button, Alert } from "antd";
+import { Form, Input, Checkbox, Button } from "antd";
 import { SubmitButton, FingerPrintLogo } from "../components";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserAuth } from "../context/UserAuthContext";
@@ -7,8 +7,7 @@ import { useUserAuth } from "../context/UserAuthContext";
 export const SignUpPage = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
-  const { signUp, authNotificationHandler, setUserAuthObj, authNotifications } =
-    useUserAuth();
+  const { signUp, authNotificationHandler } = useUserAuth();
 
   const signIn = async () => {
     try {
