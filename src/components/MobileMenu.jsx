@@ -33,7 +33,6 @@ export function MobileMenu() {
           fontSize: 25,
         }}
         onClick={showDrawer}
-        className="m-2"
       />
       <Drawer width={300} onClose={onClose} open={open}>
         <Space direction="vertical" style={{ width: "100%" }}>

@@ -1,10 +1,13 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Routes, Route, useNavigate } from "react-router";
 import { useUserAuth } from "./context/UserAuthContext";
 import { routes } from "./routes";
-import { MobileMenu, Spinner } from "./components";
+import { MobileMenu, Spinner, StickyBottomMenu } from "./components";
 import { getDocs, where, query } from "firebase/firestore";
 import { dataCollection } from "./firebase/firebase-config";
+import { Layout, Space } from "antd";
+
+const { Header, Content, Footer } = Layout;
 
 function App() {
   const {
@@ -20,6 +23,7 @@ function App() {
     setCurrentUserProfile,
     setNonSwipedUsers,
   } = useUserAuth();
+  const [calibrationDone, setCalibrationDone] = useState(false);
   const navigate = useNavigate();
 
   const fetchNotSwipedUsers = async (swipedYesUsers) => {
@@ -64,6 +68,7 @@ function App() {
           setTopFive(topFive);
           setUploadedPictures(pictures || []);
           setProfilePicture(profilePicture);
+          setCalibrationDone(true);
           navigate("/profilepage");
         } else if (userInfo && categoryLikes) {
           setCategoryLikes(categoryLikes);
@@ -87,21 +92,52 @@ function App() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center w-full">
-      <div className="w-full h-screen max-w-md">
-        {userUid && (
-          <div className="flex justify-end">
-            <MobileMenu />
-          </div>
-        )}
-        <div className="flex flex-col h-full justify-center">
+    <div className="flex justify-center items-center">
+      <Layout
+        style={{
+          margin: 5,
+          maxWidth: 480,
+          borderStyle: "double",
+          borderColor: "black",
+          borderWidth: 4,
+          height: "100vh",
+        }}
+      >
+        <Header
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            background: "white",
+            padding: 20,
+          }}
+        >
+          {userUid && <MobileMenu />}
+        </Header>
+        <Content
+          style={{
+            background: "white",
+          }}
+        >
           <Routes>
             {routes.map(({ element, path }, key) => (
               <Route path={path} element={element} key={key} />
             ))}
           </Routes>
-        </div>
-      </div>
+        </Content>
+        <Footer
+          style={{
+            position: "sticky",
+            bottom: 0,
+            background: "white",
+            width: "100%",
+            borderStyle: "double",
+            borderColor: "black",
+            borderWidth: 4,
+          }}
+        >
+          {userUid && calibrationDone && <StickyBottomMenu />}
+        </Footer>
+      </Layout>
     </div>
   );
 }

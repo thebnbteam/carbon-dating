@@ -137,10 +137,12 @@ export const ProfilePage = () => {
 
   return (
     <>
-      <div className="flex flex-col mx-4 gap-6">
+      <div className="flex flex-col mx-4 gap-2">
         <h2 className="text-center">profile</h2>
-        <ProfilePictureBox />
-        <div className="mt-10 flex flex-col gap-3">
+        <div className="flex justify-center">
+          <ProfilePictureBox />
+        </div>
+        <div className="flex flex-col gap-3">
           <Button size="large" onClick={() => navigate("/recalibrationpage")}>
             Recalibrate
           </Button>

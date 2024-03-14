@@ -27,6 +27,7 @@ export const OverallMessages = () => {
   const navigate = useNavigate();
   const { userUid } = useUserAuth();
   const [lastMessages, setlastMessages] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const userDocRef = doc(dataCollection, userUid);
 
   const getLatestMessages = async () => {
@@ -67,22 +68,27 @@ export const OverallMessages = () => {
     }
   };
 
+  const filteredMessages = lastMessages.filter((room) =>
+    room.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   useEffect(() => {
     getLatestMessages();
   }, [userUid]);
 
   return (
     <>
-      <div className="mt-3 mb-auto">
+      <div className="mt-3 mb-auto mx-7">
         <h2 className="text-center">Messages</h2>
         <Search
           className="m-2"
           size="large"
           placeholder="Search name"
           allowClear
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
-        {lastMessages.length > 0
-          ? lastMessages.map((room) => {
+        {filteredMessages.length > 0
+          ? filteredMessages.map((room) => {
               return (
                 <Card hoverable className="m-2">
                   <Meta title={room.name} />

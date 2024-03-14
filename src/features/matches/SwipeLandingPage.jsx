@@ -332,7 +332,7 @@ export const SwipeLandingPage = () => {
 
   return (
     <>
-      <div className="flex flex-col pb-[300px]">
+      <div className="flex flex-col mt-[25%]">
         <div className="flex justify-center m-4">
           <motion.div
             className="jello-horizontal"

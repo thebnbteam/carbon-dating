@@ -1,7 +1,7 @@
 export const TierListPage = () => {
   return (
     <>
-      <div>
+      <div className="m-10">
         {tierArray.map((tier) => (
           <div className="flex flex-col">
             <h3 className="font-bold">{tier.tier}</h3>

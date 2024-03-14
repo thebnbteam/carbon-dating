@@ -4,6 +4,7 @@ import { SubmitButton } from "./SubmitButton";
 import { MobileMenu } from "./MobileMenu";
 import { Spinner } from "./Spinner";
 import { ImageCarousel } from "./ImageCarousel";
+import { StickyBottomMenu } from "./StickyBottomMenu";
 
 export {
   FingerPrintLogo,
@@ -12,4 +13,5 @@ export {
   MobileMenu,
   Spinner,
   ImageCarousel,
+  StickyBottomMenu,
 };

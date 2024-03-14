@@ -115,98 +115,106 @@ export const ChatRoom = () => {
 
   return (
     <>
-      {roomMatch ? (
-        <Layout
-          style={{
-            minHeight: "100vh",
-          }}
-        >
-          <Header
+      <div className="flex justify-center items-center">
+        {roomMatch ? (
+          <Layout
             style={{
-              position: "sticky",
-              top: 0,
-              background: "white",
+              margin: 4,
+              maxWidth: 450,
             }}
           >
-            <div className="flex justify-center">
-              <Avatar
-                className="m-3"
-                shape="square"
-                size="large"
-                src={matchUserInfo.profilePicture.url}
-              />
-              <h2 className="text-center">{matchUserInfo.userInfo.name}</h2>
-            </div>
-          </Header>
-          <Content
-            style={{
-              background: "white",
-            }}
-          >
-            <div className="mx-5">
-              {sortedMessages.map((message) => {
-                return (
-                  <div
-                    className={
-                      message[1].user == userUid
-                        ? "flex flex-row-reverse"
-                        : "flex flex-row"
-                    }
-                  >
-                    <h3
-                      className={
-                        message[1].user == userUid
-                          ? "bg-blue-600 text-white p-2 rounded-md"
-                          : "bg-gray-500 text-white p-2 rounded-md"
-                      }
-                    >
-                      {message[1].text}
-                    </h3>
-                  </div>
-                );
-              })}
-            </div>
-          </Content>
-          <Footer
-            style={{
-              position: "sticky",
-              bottom: 0,
-              background: "white",
-            }}
-          >
-            <Form
-              form={form}
-              onFinish={() => {
-                sendNewMessage();
+            <Header
+              style={{
+                position: "sticky",
+                top: 0,
+                background: "white",
               }}
             >
-              <Space.Compact
-                style={{
-                  width: "100%",
+              <div className="flex justify-center">
+                <Avatar
+                  className="m-3"
+                  shape="square"
+                  size="large"
+                  src={matchUserInfo.profilePicture.url}
+                />
+                <h2 className="text-center">{matchUserInfo.userInfo.name}</h2>
+              </div>
+            </Header>
+            <Content
+              style={{
+                background: "white",
+              }}
+            >
+              <div className="mx-5">
+                {sortedMessages.map((message) => {
+                  return (
+                    <div
+                      className={
+                        message[1].user == userUid
+                          ? "flex flex-row-reverse"
+                          : "flex flex-row"
+                      }
+                    >
+                      <h3
+                        className={
+                          message[1].user == userUid
+                            ? "bg-blue-600 text-white p-2 my-1 rounded-md"
+                            : "bg-gray-500 text-white p-2 my-1 rounded-md"
+                        }
+                      >
+                        {message[1].text}
+                      </h3>
+                    </div>
+                  );
+                })}
+              </div>
+            </Content>
+            <Footer
+              style={{
+                background: "white",
+                position: "fixed",
+                bottom: 100,
+                padding: 10,
+                maxWidth: 400,
+                width: "90%",
+              }}
+            >
+              <Form
+                form={form}
+                onFinish={() => {
+                  sendNewMessage();
                 }}
               >
-                <Input
-                  type="text"
-                  value={newMessage}
-                  onChange={(event) => {
-                    setNewMessage(event.target.value);
+                <Space.Compact
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    justifyContent: "center",
                   }}
-                  placeholder="Put your message here!"
-                  allowClear
-                />
-                <Button
-                  htmlType="submit"
-                  size="large"
-                  type="default"
-                  icon={<SendOutlined />}
-                />
-              </Space.Compact>
-            </Form>
-          </Footer>
-        </Layout>
-      ) : (
-        <Spinner />
-      )}
+                >
+                  <Input
+                    type="text"
+                    value={newMessage}
+                    onChange={(event) => {
+                      setNewMessage(event.target.value);
+                    }}
+                    placeholder="Put your message here!"
+                    allowClear
+                  />
+                  <Button
+                    htmlType="submit"
+                    size="large"
+                    type="default"
+                    icon={<SendOutlined />}
+                  />
+                </Space.Compact>
+              </Form>
+            </Footer>
+          </Layout>
+        ) : (
+          <Spinner />
+        )}
+      </div>
     </>
   );
 };
