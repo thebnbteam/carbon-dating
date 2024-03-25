@@ -33,36 +33,38 @@ export const OverallMessages = () => {
   const getLatestMessages = async () => {
     try {
       const userSnapshot = await getDoc(userDocRef);
-      const userMatches = userSnapshot.data().matched;
-      const roomNumberArray = userMatches
-        .filter((field) => field.hasOwnProperty("room"))
-        .map((field) => field.room);
-      const tempPushArray = await Promise.all(
-        roomNumberArray.map(async (room) => {
-          const roomDocRef = doc(messageCollection, room);
-          const roomMessages = await getDoc(roomDocRef);
-          let tempPushObj = {};
-          if (roomMessages.exists()) {
-            tempPushObj.room = room;
-            tempPushObj.messages = Object.entries(roomMessages.data()).sort(
-              (a, b) => new Date(a[0]) - new Date(b[0])
-            );
-          }
-          for (const match of userMatches) {
-            if (match.room === room) {
-              const userRef = doc(dataCollection, match.uid);
-              const userProf = await getDoc(userRef);
-              if (userProf.exists()) {
-                tempPushObj.name = userProf.data().userInfo.name;
-                tempPushObj.uid = userProf.data().userLogin.uid;
-                tempPushObj.picture = userProf.data().profilePicture.url;
+      if (userSnapshot.data().matched) {
+        const userMatches = userSnapshot.data().matched;
+        const roomNumberArray = userMatches
+          .filter((field) => field.hasOwnProperty("room"))
+          .map((field) => field.room);
+        const tempPushArray = await Promise.all(
+          roomNumberArray.map(async (room) => {
+            const roomDocRef = doc(messageCollection, room);
+            const roomMessages = await getDoc(roomDocRef);
+            let tempPushObj = {};
+            if (roomMessages.exists()) {
+              tempPushObj.room = room;
+              tempPushObj.messages = Object.entries(roomMessages.data()).sort(
+                (a, b) => new Date(a[0]) - new Date(b[0])
+              );
+            }
+            for (const match of userMatches) {
+              if (match.room === room) {
+                const userRef = doc(dataCollection, match.uid);
+                const userProf = await getDoc(userRef);
+                if (userProf.exists()) {
+                  tempPushObj.name = userProf.data().userInfo.name;
+                  tempPushObj.uid = userProf.data().userLogin.uid;
+                  tempPushObj.picture = userProf.data().profilePicture.url;
+                }
               }
             }
-          }
-          return tempPushObj;
-        })
-      );
-      setlastMessages(tempPushArray);
+            return tempPushObj;
+          })
+        );
+        setlastMessages(tempPushArray);
+      }
     } catch (error) {
       console.error("Error getting latest messages:", error);
     }
@@ -96,7 +98,9 @@ export const OverallMessages = () => {
                     <Image width={150} src={room.picture} />
                     <div className="flex flex-col m-2">
                       <h3 className="font-bold">Most Recent Message</h3>
-                      <p>{room.messages[room.messages.length - 1][1].text}</p>
+                      <p>
+                        {room?.messages[room?.messages?.length - 1][1]?.text}
+                      </p>
                       <Button
                         className="m-1"
                         onClick={() => {

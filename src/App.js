@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { Routes, Route, useNavigate } from "react-router";
+import { Routes, Route, useNavigate, useLocation } from "react-router";
 import { useUserAuth } from "./context/UserAuthContext";
 import { routes } from "./routes";
 import { MobileMenu, Spinner, StickyBottomMenu } from "./components";
-import { getDocs, where, query } from "firebase/firestore";
-import { dataCollection } from "./firebase/firebase-config";
-import { Layout, Space } from "antd";
+import {
+  getDocs,
+  where,
+  query,
+  onSnapshot,
+  doc,
+  getDoc,
+} from "firebase/firestore";
+import { dataCollection, messageCollection } from "./firebase/firebase-config";
+import { Button, Layout, notification } from "antd";
+import { ConsoleSqlOutlined } from "@ant-design/icons";
 
 const { Header, Content, Footer } = Layout;
 
@@ -22,9 +30,37 @@ function App() {
     setProfilePicture,
     setCurrentUserProfile,
     setNonSwipedUsers,
+    modalIsOpen,
+    setMatchedUpdates,
   } = useUserAuth();
   const [calibrationDone, setCalibrationDone] = useState(false);
+  const [api, contextHolder] = notification.useNotification();
+  const location = useLocation();
   const navigate = useNavigate();
+
+  const matchNotification = () => {
+    api.info({
+      message: "You have a new match!",
+      description: (
+        <Button
+          onClick={() => {
+            navigate("/matches");
+          }}
+        >
+          See Your New Match!
+        </Button>
+      ),
+      duration: 2,
+    });
+  };
+
+  const messageNotification = () => {
+    api.info({
+      message: "You have a new message!",
+      description: <Button>See Your New Message!</Button>,
+      duration: 2,
+    });
+  };
 
   const fetchNotSwipedUsers = async (swipedYesUsers) => {
     try {
@@ -44,6 +80,27 @@ function App() {
     }
   };
 
+  const onlineMatchWatcher = async () => {
+    try {
+      const userDoc = doc(dataCollection, userUid);
+      const userRef = await getDoc(userDoc);
+      if (userRef.exists()) {
+        const userLiveUpdates = onSnapshot(userDoc, (doc) => {
+          if (doc.data().matched) {
+            setMatchedUpdates(doc.data().matched);
+            doc.data().matched.forEach((match) => {
+              if (!match.checked) {
+                matchNotification();
+              }
+            });
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error loading live matches", error);
+    }
+  };
+
   useEffect(() => {
     if (userUid) {
       const loggedInUser = allProfiles.find(
@@ -60,9 +117,10 @@ function App() {
           profilePicture,
         } = loggedInUser;
         if (topFive && userInfo && categoryLikes) {
-          if (swiped?.yes.length > 0) {
+          if (swiped?.yes?.length > 0) {
             fetchNotSwipedUsers(swiped.yes);
           }
+          onlineMatchWatcher();
           setUserInfo(userInfo);
           setCategoryLikes(categoryLikes);
           setTopFive(topFive);
@@ -93,6 +151,7 @@ function App() {
 
   return (
     <div className="flex justify-center items-center">
+      {contextHolder}
       <Layout
         style={{
           margin: 5,
@@ -124,19 +183,21 @@ function App() {
             ))}
           </Routes>
         </Content>
-        <Footer
-          style={{
-            position: "sticky",
-            bottom: 0,
-            background: "white",
-            width: "100%",
-            borderStyle: "double",
-            borderColor: "black",
-            borderWidth: 4,
-          }}
-        >
-          {userUid && calibrationDone && <StickyBottomMenu />}
-        </Footer>
+        {userUid && calibrationDone && (
+          <Footer
+            style={{
+              position: "sticky",
+              bottom: 0,
+              background: "white",
+              width: "100%",
+              borderTopStyle: "double",
+              borderTopColor: "black",
+              borderTopWidth: 4,
+            }}
+          >
+            <StickyBottomMenu />
+          </Footer>
+        )}
       </Layout>
     </div>
   );

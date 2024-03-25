@@ -87,6 +87,8 @@ export const ChatRoom = () => {
         [timestamp]: {
           text: newMessage,
           user: userUid,
+          readStatus: false,
+          time: new Date(),
         },
       });
     } else {
@@ -94,6 +96,8 @@ export const ChatRoom = () => {
         [timestamp]: {
           text: newMessage,
           user: userUid,
+          readStatus: false,
+          time: new Date(),
         },
       });
     }

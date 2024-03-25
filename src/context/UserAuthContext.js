@@ -10,7 +10,14 @@ import {
 } from "firebase/auth";
 
 import { auth, dataCollection } from "../firebase/firebase-config";
-import { doc, setDoc, getDoc, getDocs } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  updateDoc,
+} from "firebase/firestore";
 import { message } from "antd";
 
 const userAuthContext = createContext();
@@ -29,6 +36,8 @@ export function UserAuthContextProvider({ children }) {
   const [nonSwipedUsers, setNonSwipedUsers] = useState([]);
   const [profilePicture, setProfilePicture] = useState();
   const [roomNumber, setRoomNumber] = useState("");
+  const [matchedUpdates, setMatchedUpdates] = useState([]);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
 
   const signUp = async (email, password) => {
     try {
@@ -53,6 +62,7 @@ export function UserAuthContextProvider({ children }) {
         password
       );
       const user = userCredential.user;
+      console.log(auth);
       message.success("Logged in successfully.", 2);
     } catch (error) {
       message.error("Log-in error:", 2);
@@ -92,22 +102,25 @@ export function UserAuthContextProvider({ children }) {
     try {
       const userDocRef = doc(dataCollection, user.uid);
       const docSnapshot = await getDoc(userDocRef);
+
+      const userData = {
+        userLogin: {
+          email: user.email,
+          uid: user.uid,
+        },
+      };
+
       if (docSnapshot.exists()) {
-        if (!docSnapshot.data().userLogin) {
-          await setDoc(userDocRef, {
-            userLogin: {
-              email: user.email,
-              uid: user.uid,
-            },
+        const existingData = docSnapshot.data();
+        if (!existingData.userLogin) {
+          await setDoc(userDocRef, userData);
+        } else {
+          await updateDoc(userDocRef, {
+            "userLogin.timeLogged": new Date(),
           });
         }
       } else {
-        await setDoc(userDocRef, {
-          userLogin: {
-            email: user.email,
-            uid: user.uid,
-          },
-        });
+        await setDoc(userDocRef, userData);
       }
     } catch (error) {
       console.log(error);
@@ -184,6 +197,10 @@ export function UserAuthContextProvider({ children }) {
         setNonSwipedUsers,
         roomNumber,
         setRoomNumber,
+        matchedUpdates,
+        setMatchedUpdates,
+        modalIsOpen,
+        setModalIsOpen,
       }}
     >
       {children}

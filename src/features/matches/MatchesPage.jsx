@@ -1,46 +1,76 @@
 import { useState, useEffect } from "react";
 import { useUserAuth } from "../../context/UserAuthContext";
 import { dataCollection } from "../../firebase/firebase-config";
-import { doc, getDoc, query, where, getDocs } from "firebase/firestore";
-import { Button, Card, Modal, Carousel, Image } from "antd";
+import {
+  doc,
+  getDoc,
+  query,
+  where,
+  getDocs,
+  arrayUnion,
+  updateDoc,
+  onSnapshot,
+} from "firebase/firestore";
+import { Button, Card, Modal, Carousel, Image, Layout } from "antd";
 import { useNavigate } from "react-router";
+import { StarTwoTone } from "@ant-design/icons";
 
 const { Meta } = Card;
 
+const { Content } = Layout;
+
 export const MatchesPage = () => {
-  const { userUid } = useUserAuth();
+  const { userUid, matchedUpdates, setMatchedUpdates } = useUserAuth();
   const navigate = useNavigate();
-  const [matchInfo, setMatchInfo] = useState([]);
+
   const [matchedUsers, setMatchedUsers] = useState([]);
   const [openModal, setOpenModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  const userDocRef = doc(dataCollection, userUid);
-
   const getMatches = async () => {
     try {
+      const userDocRef = doc(dataCollection, userUid);
       const userDocSnapshot = await getDoc(userDocRef);
+
       if (userDocSnapshot.exists()) {
-        const userMatches = userDocSnapshot.data().matched;
-        setMatchInfo(userMatches);
-        const matchUserArray = userMatches
-          .filter((field) => field.hasOwnProperty("uid"))
-          .map((field) => field.uid);
-        const filtered = query(
-          dataCollection,
-          where("userLogin.uid", "in", matchUserArray)
-        );
-        const filteredMatch = await getDocs(filtered);
-        let matchArray = [];
-        filteredMatch.forEach((doc) => {
-          matchArray.push(doc.data());
-        });
-        setMatchedUsers(matchArray);
+        if (matchedUpdates) {
+          const matchedUid = matchedUpdates
+            .filter((field) => field.hasOwnProperty("uid"))
+            .map((field) => field.uid);
+          const uidQuery = query(
+            dataCollection,
+            where("userLogin.uid", "in", matchedUid)
+          );
+          const liveGetMatchedUsers = onSnapshot(uidQuery, (snapshot) => {
+            const profiles = [];
+            snapshot.forEach((doc) => {
+              profiles.push(doc.data());
+            });
+            setMatchedUsers(profiles);
+          });
+          updateMatchCheck();
+        }
       }
     } catch (error) {
-      console.error(error, "Error");
+      console.log(error);
     }
   };
+
+  const updateMatchCheck = async () => {
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        setMatchedUpdates((prevMatchInfo) =>
+          prevMatchInfo.map((match) => ({ ...match, checked: true }))
+        );
+        resolve();
+      }, 3000);
+    });
+    const userDocRef = doc(dataCollection, userUid);
+    await updateDoc(userDocRef, {
+      matched: matchedUpdates,
+    });
+  };
+
   useEffect(() => {
     getMatches();
   }, [userUid]);
@@ -48,9 +78,24 @@ export const MatchesPage = () => {
   return (
     <>
       <h1 className="text-center mt-5 mb-auto font-bold">Matches</h1>
-      <div className="flex flex-col items-center mt-0 mb-auto gap-1">
-        {matchInfo
-          ? matchInfo.map((match) => {
+
+      <Layout
+        style={{
+          overflowY: "auto",
+          height: "100%",
+          background: "white",
+        }}
+      >
+        <Content
+          style={{
+            overflow: "auto",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          {matchedUpdates ? (
+            matchedUpdates.map((match) => {
               let user = {};
               matchedUsers.forEach((profile) => {
                 if (profile.userLogin.uid == match.uid) {
@@ -60,7 +105,6 @@ export const MatchesPage = () => {
                   user.pictures = profile.pictures;
                 }
               });
-
               return (
                 <Card
                   hoverable
@@ -70,7 +114,12 @@ export const MatchesPage = () => {
                   cover={<img src={user.pictureUrl} />}
                 >
                   <div className="flex flex-col gap-1">
-                    <Meta title={user.name} />
+                    <Meta
+                      avatar={
+                        !match.checked && <StarTwoTone twoToneColor="#eb2f96" />
+                      }
+                      title={user.name}
+                    />
                     <h3>Tier: {match.rank}</h3>
                     <Button
                       onClick={() => {
@@ -124,8 +173,11 @@ export const MatchesPage = () => {
                 </Card>
               );
             })
-          : null}
-      </div>
+          ) : (
+            <h1>No Matches Yet!</h1>
+          )}
+        </Content>
+      </Layout>
     </>
   );
 };

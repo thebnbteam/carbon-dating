@@ -38,12 +38,14 @@ export const SwipeLandingPage = () => {
     nonSwipedUsers,
     roomNumber,
     setRoomNumber,
+    setMatchNofiticationStatus,
+    modalIsOpen,
+    setModalIsOpen,
   } = useUserAuth();
   const navigate = useNavigate();
   const [profileExpanded, setProfileExpanded] = useState(false);
   const [filteredProfiles, setFilteredProfiles] = useState([]);
   const [removedCards, setRemovedCards] = useState([]);
-  const [modalIsOpen, setModalIsOpen] = useState(false);
   const [sameInterest, setSameInterest] = useState([]);
   const [tier, setTier] = useState("");
   const [matchedUser, setMatchedUser] = useState();
@@ -60,7 +62,7 @@ export const SwipeLandingPage = () => {
 
     profiles.forEach((profile) => {
       if (
-        profile?.swiped?.yes.length > 0 &&
+        profile?.swiped?.yes?.length > 0 &&
         profile.swiped.yes.includes(userUid)
       ) {
         filteredWithSwipe.push(profile);
@@ -71,8 +73,8 @@ export const SwipeLandingPage = () => {
     const filtered = [...filteredWithoutSwipe, ...filteredWithSwipe];
     const withProfilePic = filtered.filter((profile) => {
       if (
-        profile.profilePicture &&
-        profile.userLogin.uid !== currentUserProfile.userLogin.uid
+        profile?.profilePicture &&
+        profile?.userLogin?.uid !== currentUserProfile?.userLogin?.uid
       ) {
         return profile;
       }
@@ -86,16 +88,16 @@ export const SwipeLandingPage = () => {
 
   const removeCard = (id, direction) => {
     const removedCard = filteredProfiles.filter(
-      (profiles) => profiles.userLogin.uid === id
+      (profiles) => profiles?.userLogin?.uid === id
     );
 
     setRemovedCards((prev) => [...prev, ...removedCard]);
 
     setFilteredProfiles((current) =>
-      current.filter((card) => card.userLogin.uid !== id)
+      current.filter((card) => card?.userLogin?.uid !== id)
     );
     const { userLogin } = removedCard[0];
-    addSwiped(direction, userLogin.uid);
+    addSwiped(direction, userLogin?.uid);
     if (direction == "yes") {
       matchCheck(userLogin);
     }
@@ -118,7 +120,7 @@ export const SwipeLandingPage = () => {
     if (removedCards.length > 0) {
       const singleRemovedCard = removedCards.pop();
       setFilteredProfiles((current) => [...current, singleRemovedCard]);
-      removeProfileFromSwiped(singleRemovedCard.userLogin.uid);
+      removeProfileFromSwiped(singleRemovedCard.userLogin?.uid);
     } else {
       message.error(`You didn't swipe yet!`, 2);
     }
@@ -174,10 +176,10 @@ export const SwipeLandingPage = () => {
 
   const matchCheck = (swipedProfile) => {
     const swipedUserProfile = allProfiles.find(
-      (profile) => profile.userLogin.uid == swipedProfile.uid
+      (profile) => profile?.userLogin?.uid == swipedProfile.uid
     );
     if (
-      swipedUserProfile?.swiped?.yes.includes(currentUserProfile.userLogin.uid)
+      swipedUserProfile?.swiped?.yes.includes(currentUserProfile.userLogin?.uid)
     ) {
       setMatchedUser(swipedUserProfile);
       tierSetter(swipedUserProfile);
@@ -299,20 +301,21 @@ export const SwipeLandingPage = () => {
 
   async function addMatched(swipedProfile, tierSet) {
     const userDocRef = doc(dataCollection, userUid);
-    const swipedRef = doc(dataCollection, swipedProfile.userLogin.uid);
+    const swipedRef = doc(dataCollection, swipedProfile.userLogin?.uid);
     const roomNo = uuidv1();
 
     try {
       const docSnapshot = await getDoc(userDocRef);
       const swipedUserSnapshot = await getDoc(swipedRef);
-      const messageRef = doc(messageCollection, roomNo);
       setRoomNumber(roomNo);
       if (docSnapshot.exists()) {
         await updateDoc(userDocRef, {
           matched: arrayUnion({
             rank: tierSet,
-            uid: swipedProfile.userLogin.uid,
+            uid: swipedProfile.userLogin?.uid,
             room: roomNo,
+            checked: true,
+            timeMatched: new Date(),
           }),
         });
       }
@@ -322,6 +325,8 @@ export const SwipeLandingPage = () => {
             rank: tierSet,
             uid: userUid,
             room: roomNo,
+            checked: false,
+            timeMatched: new Date(),
           }),
         });
       }
@@ -385,7 +390,7 @@ export const SwipeLandingPage = () => {
                   size={100}
                   src={
                     <img
-                      src={currentUserProfile.profilePicture.url}
+                      src={currentUserProfile?.profilePicture?.url}
                       alt="User's profile picture"
                     />
                   }
@@ -394,7 +399,7 @@ export const SwipeLandingPage = () => {
                   size={100}
                   src={
                     <img
-                      src={matchedUser?.profilePicture.url}
+                      src={matchedUser?.profilePicture?.url}
                       alt="User's profile picture"
                     />
                   }
