@@ -25,58 +25,11 @@ const { Meta } = Card;
 
 export const OverallMessages = () => {
   const navigate = useNavigate();
-  const { userUid } = useUserAuth();
-  const [lastMessages, setlastMessages] = useState([]);
+  const { userUid, matchedUpdates, matchedUsers, messages } = useUserAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  const userDocRef = doc(dataCollection, userUid);
+  const [lastMessage, setlastMessage] = useState([]);
 
-  const getLatestMessages = async () => {
-    try {
-      const userSnapshot = await getDoc(userDocRef);
-      if (userSnapshot.data().matched) {
-        const userMatches = userSnapshot.data().matched;
-        const roomNumberArray = userMatches
-          .filter((field) => field.hasOwnProperty("room"))
-          .map((field) => field.room);
-        const tempPushArray = await Promise.all(
-          roomNumberArray.map(async (room) => {
-            const roomDocRef = doc(messageCollection, room);
-            const roomMessages = await getDoc(roomDocRef);
-            let tempPushObj = {};
-            if (roomMessages.exists()) {
-              tempPushObj.room = room;
-              tempPushObj.messages = Object.entries(roomMessages.data()).sort(
-                (a, b) => new Date(a[0]) - new Date(b[0])
-              );
-            }
-            for (const match of userMatches) {
-              if (match.room === room) {
-                const userRef = doc(dataCollection, match.uid);
-                const userProf = await getDoc(userRef);
-                if (userProf.exists()) {
-                  tempPushObj.name = userProf.data().userInfo.name;
-                  tempPushObj.uid = userProf.data().userLogin.uid;
-                  tempPushObj.picture = userProf.data().profilePicture.url;
-                }
-              }
-            }
-            return tempPushObj;
-          })
-        );
-        setlastMessages(tempPushArray);
-      }
-    } catch (error) {
-      console.error("Error getting latest messages:", error);
-    }
-  };
-
-  const filteredMessages = lastMessages.filter((room) =>
-    room.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  useEffect(() => {
-    getLatestMessages();
-  }, [userUid]);
+  console.log(messages);
 
   return (
     <>
@@ -89,13 +42,13 @@ export const OverallMessages = () => {
           allowClear
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        {filteredMessages.length > 0
-          ? filteredMessages.map((room) => {
+        {messages
+          ? messages.map((room) => {
               return (
                 <Card hoverable className="m-2">
-                  <Meta title={room.name} />
+                  <Meta title={room.user.userInfo.name} />
                   <div className="flex">
-                    <Image width={150} src={room.picture} />
+                    <Image width={150} src={room.user.profilePicture.url} />
                     <div className="flex flex-col m-2">
                       <h3 className="font-bold">Most Recent Message</h3>
                       <p>
@@ -104,7 +57,9 @@ export const OverallMessages = () => {
                       <Button
                         className="m-1"
                         onClick={() => {
-                          navigate(`/chatroom/${room.room}/${room.uid}`);
+                          navigate(
+                            `/chatroom/${room.room}/${room.user.userLogin.uid}`
+                          );
                         }}
                       >
                         Message

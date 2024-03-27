@@ -10,9 +10,11 @@ import {
   onSnapshot,
   doc,
   getDoc,
+  FieldPath,
+  documentId,
 } from "firebase/firestore";
 import { dataCollection, messageCollection } from "./firebase/firebase-config";
-import { Button, Layout, notification } from "antd";
+import { Button, Layout, message, notification } from "antd";
 import { ConsoleSqlOutlined } from "@ant-design/icons";
 
 const { Header, Content, Footer } = Layout;
@@ -32,6 +34,11 @@ function App() {
     setNonSwipedUsers,
     modalIsOpen,
     setMatchedUpdates,
+    matchedUpdates,
+    matchedUsers,
+    setMatchedUsers,
+    setMessages,
+    messages,
   } = useUserAuth();
   const [calibrationDone, setCalibrationDone] = useState(false);
   const [api, contextHolder] = notification.useNotification();
@@ -80,7 +87,7 @@ function App() {
     }
   };
 
-  const onlineMatchWatcher = async () => {
+  const onlineWatcher = async () => {
     try {
       const userDoc = doc(dataCollection, userUid);
       const userRef = await getDoc(userDoc);
@@ -93,6 +100,75 @@ function App() {
                 matchNotification();
               }
             });
+          }
+          const matchedUid = doc
+            .data()
+            .matched.filter((field) => field.hasOwnProperty("uid"))
+            .map((field) => field.uid);
+
+          const liveGetMatchedUsers = onSnapshot(
+            query(dataCollection, where("userLogin.uid", "in", matchedUid)),
+            (snapshot) => {
+              const profiles = [];
+              snapshot.forEach((doc) => {
+                profiles.push(doc.data());
+              });
+              setMatchedUsers(profiles);
+            }
+          );
+          if (doc.data().chatRooms) {
+            const roomArray = doc.data().chatRooms;
+            if (roomArray) {
+              const chatSorted = [];
+              const promises = roomArray.map((room) => {
+                return new Promise((resolve, reject) => {
+                  const tempObj = {};
+                  const liveChatPromise = new Promise((liveResolve) => {
+                    onSnapshot(
+                      query(
+                        dataCollection,
+                        where("userLogin.uid", "==", room.uid)
+                      ),
+                      (snapshot) => {
+                        snapshot.forEach((doc) => {
+                          tempObj.user = doc.data();
+                        });
+                        liveResolve();
+                      }
+                    );
+                  });
+                  const messageCollectionPromise = new Promise(
+                    (messageResolve) => {
+                      onSnapshot(messageCollection, (snapshot) => {
+                        snapshot.forEach((doc) => {
+                          if (doc.id == room.roomId) {
+                            tempObj.room = doc.id;
+                            tempObj.messages = Object.entries(doc.data()).sort(
+                              (a, b) => new Date(a[0]) - new Date(b[0])
+                            );
+                          }
+                        });
+                        messageResolve();
+                      });
+                    }
+                  );
+
+                  Promise.all([liveChatPromise, messageCollectionPromise])
+                    .then(() => {
+                      chatSorted.push(tempObj);
+                      resolve();
+                    })
+                    .catch(reject);
+                });
+              });
+              Promise.all(promises)
+                .then(() => {
+                  setMessages(chatSorted);
+                })
+                .catch((error) => {
+                  console.error("Error:", error);
+                });
+            }
           }
         });
       }
@@ -120,7 +196,7 @@ function App() {
           if (swiped?.yes?.length > 0) {
             fetchNotSwipedUsers(swiped.yes);
           }
-          onlineMatchWatcher();
+          onlineWatcher();
           setUserInfo(userInfo);
           setCategoryLikes(categoryLikes);
           setTopFive(topFive);

@@ -20,10 +20,15 @@ const { Meta } = Card;
 const { Content } = Layout;
 
 export const MatchesPage = () => {
-  const { userUid, matchedUpdates, setMatchedUpdates } = useUserAuth();
+  const {
+    userUid,
+    matchedUpdates,
+    setMatchedUpdates,
+    matchedUsers,
+    setMatchedUsers,
+  } = useUserAuth();
   const navigate = useNavigate();
 
-  const [matchedUsers, setMatchedUsers] = useState([]);
   const [openModal, setOpenModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
@@ -63,7 +68,7 @@ export const MatchesPage = () => {
           prevMatchInfo.map((match) => ({ ...match, checked: true }))
         );
         resolve();
-      }, 3000);
+      }, 2000);
     });
     const userDocRef = doc(dataCollection, userUid);
     await updateDoc(userDocRef, {

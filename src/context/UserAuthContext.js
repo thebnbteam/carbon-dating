@@ -38,6 +38,8 @@ export function UserAuthContextProvider({ children }) {
   const [roomNumber, setRoomNumber] = useState("");
   const [matchedUpdates, setMatchedUpdates] = useState([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [matchedUsers, setMatchedUsers] = useState([]);
+  const [messages, setMessages] = useState([]);
 
   const signUp = async (email, password) => {
     try {
@@ -62,7 +64,6 @@ export function UserAuthContextProvider({ children }) {
         password
       );
       const user = userCredential.user;
-      console.log(auth);
       message.success("Logged in successfully.", 2);
     } catch (error) {
       message.error("Log-in error:", 2);
@@ -201,6 +202,10 @@ export function UserAuthContextProvider({ children }) {
         setMatchedUpdates,
         modalIsOpen,
         setModalIsOpen,
+        matchedUsers,
+        setMatchedUsers,
+        messages,
+        setMessages,
       }}
     >
       {children}

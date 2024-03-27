@@ -317,6 +317,10 @@ export const SwipeLandingPage = () => {
             checked: true,
             timeMatched: new Date(),
           }),
+          chatRooms: arrayUnion({
+            roomId: roomNo,
+            uid: swipedProfile.userLogin?.uid,
+          }),
         });
       }
       if (swipedUserSnapshot.exists()) {
@@ -327,6 +331,10 @@ export const SwipeLandingPage = () => {
             room: roomNo,
             checked: false,
             timeMatched: new Date(),
+          }),
+          chatRooms: arrayUnion({
+            roomId: roomNo,
+            uid: userUid,
           }),
         });
       }
