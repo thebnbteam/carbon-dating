@@ -32,17 +32,13 @@ function App() {
     setProfilePicture,
     setCurrentUserProfile,
     setNonSwipedUsers,
-    modalIsOpen,
     setMatchedUpdates,
-    matchedUpdates,
-    matchedUsers,
     setMatchedUsers,
     setMessages,
-    messages,
+    setUnreadMessageCount,
   } = useUserAuth();
   const [calibrationDone, setCalibrationDone] = useState(false);
   const [api, contextHolder] = notification.useNotification();
-  const location = useLocation();
   const navigate = useNavigate();
 
   const matchNotification = () => {
@@ -61,10 +57,18 @@ function App() {
     });
   };
 
-  const messageNotification = () => {
+  const messageNotification = (number) => {
     api.info({
-      message: "You have a new message!",
-      description: <Button>See Your New Message!</Button>,
+      message: `You have ${number} message!`,
+      description: (
+        <Button
+          onClick={() => {
+            navigate("/overallmessages");
+          }}
+        >
+          See Your New Message!
+        </Button>
+      ),
       duration: 2,
     });
   };
@@ -146,6 +150,12 @@ function App() {
                             tempObj.messages = Object.entries(doc.data()).sort(
                               (a, b) => new Date(a[0]) - new Date(b[0])
                             );
+                            const messageCount = messageCounter(
+                              tempObj.messages
+                            );
+                            if (messageCount > 0) {
+                              messageNotification(messageCount);
+                            }
                           }
                         });
                         messageResolve();
@@ -175,6 +185,16 @@ function App() {
     } catch (error) {
       console.error("Error loading live matches", error);
     }
+  };
+
+  const messageCounter = (sortedChat) => {
+    let unreadCounter = 0;
+    sortedChat.forEach((message) => {
+      if (!message[1].readStatus && message[1].user !== userUid) {
+        unreadCounter++;
+      }
+    });
+    return unreadCounter;
   };
 
   useEffect(() => {

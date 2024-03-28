@@ -28,9 +28,6 @@ export const OverallMessages = () => {
   const { userUid, matchedUpdates, matchedUsers, messages } = useUserAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [lastMessage, setlastMessage] = useState([]);
-
-  console.log(messages);
-
   return (
     <>
       <div className="mt-3 mb-auto mx-7">

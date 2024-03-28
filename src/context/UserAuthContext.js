@@ -40,6 +40,7 @@ export function UserAuthContextProvider({ children }) {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [matchedUsers, setMatchedUsers] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [unreadMessageCount, setUnreadMessageCount] = useState();
 
   const signUp = async (email, password) => {
     try {
@@ -206,6 +207,8 @@ export function UserAuthContextProvider({ children }) {
         setMatchedUsers,
         messages,
         setMessages,
+        unreadMessageCount,
+        setUnreadMessageCount,
       }}
     >
       {children}
