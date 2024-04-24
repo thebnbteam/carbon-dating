@@ -68,12 +68,16 @@ export const MatchesPage = () => {
           prevMatchInfo.map((match) => ({ ...match, checked: true }))
         );
         resolve();
-      }, 2000);
+      }, 300);
     });
     const userDocRef = doc(dataCollection, userUid);
-    await updateDoc(userDocRef, {
-      matched: matchedUpdates,
-    });
+    try {
+      await updateDoc(userDocRef, {
+        matched: matchedUpdates,
+      });
+    } catch (error) {
+      console.log(error, "Error updating matches");
+    }
   };
 
   useEffect(() => {

@@ -12,6 +12,10 @@
   font-family: "Mada", sans-serif;
 }
 
+*::-webkit-scrollbar {
+  display: none;
+}
+
 h2 {
   font-size: 3rem;
 }

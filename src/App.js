@@ -25,6 +25,7 @@ function App() {
     isLoading,
     setIsLoading,
     allProfiles,
+    unreadMessageCount,
     setUserInfo,
     setCategoryLikes,
     setTopFive,
@@ -100,7 +101,7 @@ function App() {
           if (doc.data().matched) {
             setMatchedUpdates(doc.data().matched);
             doc.data().matched.forEach((match) => {
-              if (!match.checked) {
+              if (match.checked == false) {
                 matchNotification();
               }
             });
@@ -120,65 +121,63 @@ function App() {
               setMatchedUsers(profiles);
             }
           );
-          if (doc.data().chatRooms) {
-            const roomArray = doc.data().chatRooms;
-            if (roomArray) {
-              const chatSorted = [];
-              const promises = roomArray.map((room) => {
-                return new Promise((resolve, reject) => {
-                  const tempObj = {};
-                  const liveChatPromise = new Promise((liveResolve) => {
-                    onSnapshot(
-                      query(
-                        dataCollection,
-                        where("userLogin.uid", "==", room.uid)
-                      ),
-                      (snapshot) => {
-                        snapshot.forEach((doc) => {
-                          tempObj.user = doc.data();
-                        });
-                        liveResolve();
-                      }
-                    );
-                  });
-                  const messageCollectionPromise = new Promise(
-                    (messageResolve) => {
-                      onSnapshot(messageCollection, (snapshot) => {
-                        snapshot.forEach((doc) => {
-                          if (doc.id == room.roomId) {
-                            tempObj.room = doc.id;
-                            tempObj.messages = Object.entries(doc.data()).sort(
-                              (a, b) => new Date(a[0]) - new Date(b[0])
-                            );
-                            const messageCount = messageCounter(
-                              tempObj.messages
-                            );
-                            if (messageCount > 0) {
-                              messageNotification(messageCount);
-                            }
-                          }
-                        });
-                        messageResolve();
+          const roomArray = doc.data().chatRooms;
+          if (roomArray) {
+            const chatSorted = [];
+            const promises = roomArray.map((room) => {
+              return new Promise((resolve, reject) => {
+                const tempObj = {};
+                const liveChatPromise = new Promise((liveResolve) => {
+                  onSnapshot(
+                    query(
+                      dataCollection,
+                      where("userLogin.uid", "==", room.uid)
+                    ),
+                    (snapshot) => {
+                      snapshot.forEach((doc) => {
+                        tempObj.user = doc.data();
                       });
+                      liveResolve();
                     }
                   );
+                });
+                const messageCollectionPromise = new Promise(
+                  (messageResolve) => {
+                    onSnapshot(messageCollection, (snapshot) => {
+                      snapshot.forEach((doc) => {
+                        if (doc.id == room.roomId) {
+                          tempObj.room = doc.id;
+                          tempObj.messages = Object.entries(doc.data()).sort(
+                            (a, b) => new Date(b[0]) - new Date(a[0])
+                          );
+                        }
+                      });
+                      const messageCount = messageCounter(tempObj.messages);
 
-                  Promise.all([liveChatPromise, messageCollectionPromise])
-                    .then(() => {
-                      chatSorted.push(tempObj);
-                      resolve();
-                    })
-                    .catch(reject);
-                });
+                      if (messageCount > 0) {
+                        setUnreadMessageCount(messageCount);
+                        messageNotification(messageCount);
+                      }
+                      messageResolve();
+                    });
+                  }
+                );
+
+                Promise.all([liveChatPromise, messageCollectionPromise])
+                  .then(() => {
+                    chatSorted.push(tempObj);
+                    resolve();
+                  })
+                  .catch(reject);
               });
-              Promise.all(promises)
-                .then(() => {
-                  setMessages(chatSorted);
-                })
-                .catch((error) => {
-                  console.error("Error:", error);
-                });
-            }
+            });
+            Promise.all(promises)
+              .then(() => {
+                setMessages(chatSorted);
+              })
+              .catch((error) => {
+                console.error("Error:", error);
+              });
           }
         });
       }
@@ -190,7 +189,7 @@ function App() {
   const messageCounter = (sortedChat) => {
     let unreadCounter = 0;
     sortedChat.forEach((message) => {
-      if (!message[1].readStatus && message[1].user !== userUid) {
+      if (message[1].readStatus == false && message[1].user !== userUid) {
         unreadCounter++;
       }
     });
@@ -271,6 +270,7 @@ function App() {
         <Content
           style={{
             background: "white",
+            overflow: "auto",
           }}
         >
           <Routes>

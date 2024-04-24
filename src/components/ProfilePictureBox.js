@@ -40,10 +40,8 @@ export const ProfilePictureBox = () => {
     if (userUid) {
       const documentRef = doc(dataCollection, userUid);
       const unsubscribe = onSnapshot(documentRef, (docSnapshot) => {
-        console.log(docSnapshot);
         if (docSnapshot.data().profilePicture) {
           const data = docSnapshot.data().profilePicture;
-          console.log(data);
           setProfilePicture(data);
         } else {
           setProfilePicture(null);

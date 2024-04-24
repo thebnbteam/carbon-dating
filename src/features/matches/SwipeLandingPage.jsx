@@ -303,11 +303,25 @@ export const SwipeLandingPage = () => {
     const userDocRef = doc(dataCollection, userUid);
     const swipedRef = doc(dataCollection, swipedProfile.userLogin?.uid);
     const roomNo = uuidv1();
+    const messageDoc = doc(messageCollection, roomNo);
 
     try {
       const docSnapshot = await getDoc(userDocRef);
       const swipedUserSnapshot = await getDoc(swipedRef);
+      const messageSnapshot = await getDoc(messageDoc);
       setRoomNumber(roomNo);
+      const timestamp = new Date();
+
+      if (!messageSnapshot.exists) {
+        await setDoc(messageSnapshot, {
+          [timestamp]: {
+            text: "",
+            user: userUid,
+            matchedTime: new Date(),
+          },
+        });
+      }
+
       if (docSnapshot.exists()) {
         await updateDoc(userDocRef, {
           matched: arrayUnion({
