@@ -5,6 +5,7 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   UndoOutlined,
+  ConsoleSqlOutlined,
 } from "@ant-design/icons";
 import { message, Modal, Button, Avatar } from "antd";
 import { useUserAuth } from "../../context/UserAuthContext";
@@ -19,6 +20,8 @@ import {
   arrayUnion,
   updateDoc,
   serverTimestamp,
+  collection,
+  addDoc,
 } from "firebase/firestore";
 import {
   dataCollection,
@@ -86,7 +89,8 @@ export const SwipeLandingPage = () => {
     setProfileExpanded(!profileExpanded);
   }
 
-  const removeCard = (id, direction) => {
+  const removeCard = async (id, direction) => {
+    console.log(id);
     const removedCard = filteredProfiles.filter(
       (profiles) => profiles?.userLogin?.uid === id
     );
@@ -96,10 +100,11 @@ export const SwipeLandingPage = () => {
     setFilteredProfiles((current) =>
       current.filter((card) => card?.userLogin?.uid !== id)
     );
+
     const { userLogin } = removedCard[0];
     addSwiped(direction, userLogin?.uid);
     if (direction == "yes") {
-      matchCheck(userLogin);
+      await matchCheck(userLogin);
     }
   };
 
@@ -174,7 +179,7 @@ export const SwipeLandingPage = () => {
     }
   }
 
-  const matchCheck = (swipedProfile) => {
+  const matchCheck = async (swipedProfile) => {
     const swipedUserProfile = allProfiles.find(
       (profile) => profile?.userLogin?.uid == swipedProfile.uid
     );
@@ -182,16 +187,41 @@ export const SwipeLandingPage = () => {
       swipedUserProfile?.swiped?.yes.includes(currentUserProfile.userLogin?.uid)
     ) {
       setMatchedUser(swipedUserProfile);
-      tierSetter(swipedUserProfile);
+      await tierSetter(swipedUserProfile);
       setModalIsOpen(true);
     }
   };
 
-  const tierSetter = (swipedProfile) => {
-    const profileSwipedSorted = categorySorter(swipedProfile.categoryLikes);
-    const currentUserLikesSorted = categorySorter(
+  function categorySorter(categoryObj) {
+    let lowTierObj = {};
+    let highTierObj = {};
+    const likesArray = Object.keys(categoryObj);
+
+    likesArray.forEach((category) => {
+      let subCategoryArray = Object.keys(categoryObj[category]);
+      subCategoryArray.forEach((subcategory) => {
+        highTierObj[subcategory] = categoryObj[category][subcategory].length;
+      });
+    });
+
+    const highTier = highTierObj;
+    likesArray.forEach((category) => {
+      lowTierObj[category] = Object.keys(categoryObj[category]).length;
+    });
+    const lowTier = Object.entries(lowTierObj).sort((a, b) => b[1] - a[1]);
+    return { highTier, lowTier };
+  }
+
+  const tierSetter = async (swipedProfile) => {
+    const profileSwipedSortedPromise = categorySorter(
+      swipedProfile.categoryLikes
+    );
+    const currentUserLikesSortedPromise = categorySorter(
       currentUserProfile.categoryLikes
     );
+
+    const profileSwipedSorted = await profileSwipedSortedPromise;
+    const currentUserLikesSorted = await currentUserLikesSortedPromise;
 
     let lowMatched = 0;
     let lowTierInterest = [];
@@ -217,14 +247,18 @@ export const SwipeLandingPage = () => {
     for (let i = 0; i < 5; i++) {
       const currentUserCategory = currentUserLikesSorted.lowTier;
       const profileSwipedCategory = profileSwipedSorted.lowTier;
-
-      if (currentUserCategory && profileSwipedCategory) {
+      if (
+        currentUserCategory &&
+        profileSwipedCategory &&
+        currentUserCategory[i] &&
+        profileSwipedCategory[i]
+      ) {
         if (
           currentUserCategory[i][0] == profileSwipedCategory[i][0] ||
-          (currentUserCategory[i][0] == profileSwipedCategory[i - 1]?.[0] &&
-            i > 0) ||
-          (currentUserCategory[i][0] == profileSwipedCategory[i + 1]?.[0] &&
-            i < 5)
+          (i > 0 &&
+            currentUserCategory[i][0] == profileSwipedCategory[i - 1]?.[0]) ||
+          (i < 4 &&
+            currentUserCategory[i][0] == profileSwipedCategory[i + 1]?.[0])
         ) {
           lowMatched += 1;
           lowTierInterest.push(currentUserCategory[i][0]);
@@ -279,79 +313,39 @@ export const SwipeLandingPage = () => {
     }
   };
 
-  function categorySorter(categoryObj) {
-    let lowTierObj = {};
-    let highTierObj = {};
-    const likesArray = Object.keys(categoryObj);
-
-    likesArray.forEach((category) => {
-      let subCategoryArray = Object.keys(categoryObj[category]);
-      subCategoryArray.forEach((subcategory) => {
-        highTierObj[subcategory] = categoryObj[category][subcategory].length;
-      });
-    });
-
-    const highTier = highTierObj;
-    likesArray.forEach((category) => {
-      lowTierObj[category] = Object.keys(categoryObj[category]).length;
-    });
-    const lowTier = Object.entries(lowTierObj).sort((a, b) => b[1] - a[1]);
-    return { highTier, lowTier };
-  }
-
   async function addMatched(swipedProfile, tierSet) {
     const userDocRef = doc(dataCollection, userUid);
     const swipedRef = doc(dataCollection, swipedProfile.userLogin?.uid);
+
+    const userRoomSubCollection = collection(userDocRef, "chatRooms");
+    const swipedRoomSubCollection = collection(swipedRef, "chatRooms");
+
     const roomNo = uuidv1();
-    const messageDoc = doc(messageCollection, roomNo);
 
     try {
-      const docSnapshot = await getDoc(userDocRef);
-      const swipedUserSnapshot = await getDoc(swipedRef);
-      const messageSnapshot = await getDoc(messageDoc);
       setRoomNumber(roomNo);
       const timestamp = new Date();
 
-      if (!messageSnapshot.exists) {
-        await setDoc(messageSnapshot, {
-          [timestamp]: {
-            text: "",
-            user: userUid,
-            matchedTime: new Date(),
-          },
-        });
-      }
+      await addDoc(userRoomSubCollection, {
+        rank: tierSet,
+        room: roomNo,
+        checked: false,
+        matchedTime: timestamp,
+        matchedUserUid: swipedProfile.userLogin?.uid,
+      });
 
-      if (docSnapshot.exists()) {
-        await updateDoc(userDocRef, {
-          matched: arrayUnion({
-            rank: tierSet,
-            uid: swipedProfile.userLogin?.uid,
-            room: roomNo,
-            checked: true,
-            timeMatched: new Date(),
-          }),
-          chatRooms: arrayUnion({
-            roomId: roomNo,
-            uid: swipedProfile.userLogin?.uid,
-          }),
-        });
-      }
-      if (swipedUserSnapshot.exists()) {
-        await updateDoc(swipedRef, {
-          matched: arrayUnion({
-            rank: tierSet,
-            uid: userUid,
-            room: roomNo,
-            checked: false,
-            timeMatched: new Date(),
-          }),
-          chatRooms: arrayUnion({
-            roomId: roomNo,
-            uid: userUid,
-          }),
-        });
-      }
+      await addDoc(swipedRoomSubCollection, {
+        rank: tierSet,
+        room: roomNo,
+        checked: false,
+        matchedTime: timestamp,
+        matchedUserUid: userUid,
+      });
+
+      await addDoc(messageCollection, {
+        roomNumber: roomNo,
+        users: [userUid, swipedProfile.userLogin?.uid],
+      });
     } catch (error) {
       console.error("Error Adding Matched", error);
     }
@@ -493,7 +487,7 @@ export const SwipeLandingPage = () => {
               className="text-4xl mx-5"
               onClick={() => {
                 setLeaveX(1000);
-                removeCard(filteredProfiles[activeIndex].userLogin.uid, "yes");
+                removeCard(filteredProfiles[activeIndex]?.userLogin.uid, "yes");
               }}
             />
           </div>

@@ -21,13 +21,22 @@ import { getStorage } from "firebase/storage";
 //   appId: "1:466861534127:web:8c0a9d19313a8fd5a79d5a",
 // };
 
+// const firebaseConfig = {
+//   apiKey: "AIzaSyC3Q7V-5f4y5-l0ohzcyjhXZnDRHPmTHjo",
+//   authDomain: "carbon-dating3.firebaseapp.com",
+//   projectId: "carbon-dating3",
+//   storageBucket: "carbon-dating3.appspot.com",
+//   messagingSenderId: "777832566907",
+//   appId: "1:777832566907:web:a5c2bf73ad57d6e14e52de",
+// };
+
 const firebaseConfig = {
-  apiKey: "AIzaSyC3Q7V-5f4y5-l0ohzcyjhXZnDRHPmTHjo",
-  authDomain: "carbon-dating3.firebaseapp.com",
-  projectId: "carbon-dating3",
-  storageBucket: "carbon-dating3.appspot.com",
-  messagingSenderId: "777832566907",
-  appId: "1:777832566907:web:a5c2bf73ad57d6e14e52de",
+  apiKey: "AIzaSyAS5d3m-TRIz4HJsQ9IvqLbB3OvJcJUP5c",
+  authDomain: "cd-44-367c2.firebaseapp.com",
+  projectId: "cd-44-367c2",
+  storageBucket: "cd-44-367c2.appspot.com",
+  messagingSenderId: "254360540764",
+  appId: "1:254360540764:web:b753d3a5a58566426af899",
 };
 
 const app = initializeApp(firebaseConfig);

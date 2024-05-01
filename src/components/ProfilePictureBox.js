@@ -15,7 +15,7 @@ export const ProfilePictureBox = () => {
     setProfilePicture,
     userInfo,
   } = useUserAuth();
-  const [activeTabKey, setActiveTabKey] = useState("main");
+  const [activeTabKey, setActiveTabKey] = useState("main" || "main");
 
   const pickProfilePicture = async (picture) => {
     try {
@@ -36,23 +36,6 @@ export const ProfilePictureBox = () => {
     setActiveTabKey(key);
   };
 
-  useEffect(() => {
-    if (userUid) {
-      const documentRef = doc(dataCollection, userUid);
-      const unsubscribe = onSnapshot(documentRef, (docSnapshot) => {
-        if (docSnapshot.data().profilePicture) {
-          const data = docSnapshot.data().profilePicture;
-          setProfilePicture(data);
-        } else {
-          setProfilePicture(null);
-        }
-      });
-      return () => {
-        unsubscribe();
-      };
-    }
-  }, [userUid]);
-
   const tabList = [
     {
       key: "main",
@@ -67,7 +50,7 @@ export const ProfilePictureBox = () => {
   const contentList = {
     main: profilePicture ? (
       <div className="flex justify-center">
-        <Image height={250} width={250} src={profilePicture.url} />
+        <Image height={250} width={250} src={profilePicture?.url} />
       </div>
     ) : (
       "Please upload pictures and set your profile picture!"
@@ -90,7 +73,7 @@ export const ProfilePictureBox = () => {
         width: "90%",
       }}
       tabList={tabList}
-      activeTabKey={activeTabKey}
+      activeTabKey={activeTabKey || "main"}
       onTabChange={onTabChange}
     >
       <div className="my-3">{contentList[activeTabKey]}</div>

@@ -8,15 +8,12 @@ import { useUserAuth } from "../context/UserAuthContext";
 export const LoginPage = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  const { logIn, googleSignIn, authNotificationHandler, authNotifications } =
-    useUserAuth();
+  const { logIn, googleSignIn } = useUserAuth();
 
   const signIn = async () => {
     try {
       await logIn(form.getFieldsValue().email, form.getFieldsValue().password);
-    } catch (err) {
-      authNotificationHandler("error", "Error", err.message);
-    }
+    } catch (err) {}
   };
 
   return (

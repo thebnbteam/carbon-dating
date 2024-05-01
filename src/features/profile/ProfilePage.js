@@ -26,7 +26,13 @@ const getBase64 = (file) => {
 };
 
 export const ProfilePage = () => {
-  const { userUid, setUploadedPictures } = useUserAuth();
+  const {
+    userUid,
+    setUploadedPictures,
+    isLoading,
+    setIsLoading,
+    profilePicture,
+  } = useUserAuth();
   const navigate = useNavigate();
 
   const [fileList, setFileList] = useState([]);
@@ -119,20 +125,15 @@ export const ProfilePage = () => {
   };
 
   useEffect(() => {
-    if (userUid) {
-      const documentRef = doc(dataCollection, userUid);
-      const unsubscribe = onSnapshot(documentRef, (docSnapshot) => {
-        if (docSnapshot.exists()) {
-          const data = docSnapshot.data().pictures;
-          setUploadedPictures(data);
-        } else {
-          console.log("Document does not exist");
-        }
-      });
-      return () => {
-        unsubscribe();
-      };
-    }
+    const documentRef = doc(dataCollection, userUid);
+    const unsubscribe = onSnapshot(documentRef, (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        const data = docSnapshot?.data()?.pictures;
+        setUploadedPictures(data);
+      } else {
+        console.log("Document does not exist");
+      }
+    });
   }, [userUid]);
 
   return (

@@ -41,6 +41,7 @@ export function UserAuthContextProvider({ children }) {
   const [matchedUsers, setMatchedUsers] = useState([]);
   const [messages, setMessages] = useState([]);
   const [unreadMessageCount, setUnreadMessageCount] = useState();
+  const [userData, setUserData] = useState();
 
   const signUp = async (email, password) => {
     try {
@@ -104,16 +105,23 @@ export function UserAuthContextProvider({ children }) {
     try {
       const userDocRef = doc(dataCollection, user.uid);
       const docSnapshot = await getDoc(userDocRef);
-
       const userData = {
         userLogin: {
           email: user.email,
           uid: user.uid,
         },
       };
-
       if (docSnapshot.exists()) {
         const existingData = docSnapshot.data();
+        const { userInfo, categoryLikes, topFive, pictures, profilePicture } =
+          existingData;
+        setUserInfo(userInfo);
+        setCategoryLikes(categoryLikes);
+        setTopFive(topFive);
+        setUploadedPictures(pictures || []);
+        setProfilePicture(profilePicture);
+        setCurrentUserProfile(existingData);
+        setUserUid(user.uid);
         if (!existingData.userLogin) {
           await setDoc(userDocRef, userData);
         } else {
@@ -124,22 +132,9 @@ export function UserAuthContextProvider({ children }) {
       } else {
         await setDoc(userDocRef, userData);
       }
+      // setIsLoading(false);
     } catch (error) {
       console.log(error);
-    }
-  };
-
-  const checkUserInfo = async (user) => {
-    if (user) {
-      const userDocRef = doc(dataCollection, user.uid);
-      const docSnapshot = await getDoc(userDocRef);
-      if (docSnapshot.exists()) {
-        const userData = docSnapshot.data();
-        setUserInfo((prevUserInfo) => userData.userInfo || prevUserInfo);
-        setCategoryLikes(
-          (prevCategoryLikes) => userData.categoryLikes || prevCategoryLikes
-        );
-      }
     }
   };
 
@@ -153,12 +148,9 @@ export function UserAuthContextProvider({ children }) {
   };
 
   const handleAuthStateChanged = async (user) => {
-    if (user && user.uid) {
+    if (user) {
       await userLoginCheck(user);
       await getAllProfiles();
-      setUserUid(user.uid);
-    } else {
-      setUserUid(null);
     }
   };
 

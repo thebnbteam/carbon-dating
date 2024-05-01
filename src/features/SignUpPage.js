@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Form, Input, Checkbox, Button } from "antd";
+import { Form, Input, Checkbox, Button, notification } from "antd";
 import { SubmitButton, FingerPrintLogo } from "../components";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserAuth } from "../context/UserAuthContext";
@@ -7,20 +7,22 @@ import { useUserAuth } from "../context/UserAuthContext";
 export const SignUpPage = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
-  const { signUp, authNotificationHandler } = useUserAuth();
+  const [api, contextHolder] = notification.useNotification();
+  const { signUp } = useUserAuth();
+
+  const signUpNotification = () => {
+    api.info({
+      message: "Sign Up Successful!",
+      duration: 2,
+    });
+  };
 
   const signIn = async () => {
     try {
       await signUp(form.getFieldsValue().email, form.getFieldsValue().password);
-      authNotificationHandler(
-        "success",
-        "Success",
-        "You have successfully signed up!"
-      );
+      signUpNotification();
       navigate("/calibratelandingpage");
-    } catch (err) {
-      authNotificationHandler("error", "Error", err.message);
-    }
+    } catch (err) {}
   };
 
   return (

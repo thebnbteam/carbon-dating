@@ -13,11 +13,26 @@ import {
 import { SendOutlined } from "@ant-design/icons";
 import { useParams } from "react-router";
 
-import { doc, getDoc, setDoc, updateDoc, onSnapshot } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  getDocs,
+  addDoc,
+  onSnapshot,
+  where,
+  collection,
+  query,
+  serverTimestamp,
+  orderBy,
+  writeBatch,
+} from "firebase/firestore";
 
 import {
   dataCollection,
   messageCollection,
+  db,
 } from "../../firebase/firebase-config";
 
 import { useUserAuth } from "../../context/UserAuthContext";
@@ -37,111 +52,85 @@ export const ChatRoom = () => {
   const [matchUserInfo, setMatchUserInfo] = useState({});
   const [readHover, setReadHover] = useState(false);
   const [form] = Form.useForm();
-  const messageDoc = doc(messageCollection, roomNumber);
 
   const sendNewMessage = async () => {
-    const messageRef = await getDoc(messageDoc);
+    try {
+      if (newMessage === "") return;
+      const querySnapshot = await getDocs(
+        query(messageCollection, where("roomNumber", "==", roomNumber))
+      );
+      if (querySnapshot.empty) {
+        console.log("Document not found");
+        return;
+      }
+      const messageRoomDocRef = querySnapshot.docs[0].ref;
+      const messagesCollectionRef = collection(messageRoomDocRef, "messages");
+      const timestamp = new Date();
+      const messageData = {
+        text: newMessage,
+        user: userUid,
+        readStatus: false,
+        time: timestamp,
+      };
 
-    if (newMessage === "") return;
-    const timestamp = new Date();
-
-    if (!messageRef.exists()) {
-      await setDoc(messageDoc, {
-        [timestamp]: {
-          text: newMessage,
-          user: userUid,
-          readStatus: false,
-          time: new Date(),
-        },
-      });
-    } else {
-      await updateDoc(messageDoc, {
-        [timestamp]: {
-          text: newMessage,
-          user: userUid,
-          readStatus: false,
-          time: new Date(),
-        },
-      });
+      await addDoc(messagesCollectionRef, messageData);
+      console.log("Message sent");
+      setNewMessage("");
+    } catch (error) {
+      console.error("Error sending message:", error);
     }
-    setNewMessage("");
-  };
-
-  const updateMessages = async (messages) => {
-    const options = {
-      hour12: true, // Use 12-hour clock
-      hour: "numeric",
-      minute: "numeric",
-      second: "numeric",
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, // Get user's timezone
-    };
-
-    const readTime = new Date().toLocaleString("en-US", options);
-
-    await new Promise((resolve) => {
-      const updatedMessages = messages?.map((message) => {
-        if (message[1].user !== userUid) {
-          return [
-            message[0],
-            { ...message[1], readStatus: true, readAt: readTime },
-          ];
-        } else {
-          return [message[0], message[1]];
-        }
-      });
-      resolve(updatedMessages);
-    }).then((val) => {
-      try {
-        updateDoc(messageDoc, Object.fromEntries(val));
-      } catch (error) {
-        console.log(error, "error updating messages");
-      }
-    });
-  };
-
-  const readMessages = async (messages) => {
-    const unreadCounter = messageCounter(messages);
-    const newCount = unreadMessageCount - unreadCounter;
-    setUnreadMessageCount(newCount);
-  };
-
-  const getMatchedUser = async (matchedUser) => {
-    const matchedUserDoc = doc(dataCollection, matchedUser);
-    const matchedUserDocRef = await getDoc(matchedUserDoc);
-    setMatchUserInfo(matchedUserDocRef.data());
-  };
-
-  const messageCounter = (sortedChat) => {
-    let unreadCounter = 0;
-    sortedChat.forEach((message) => {
-      if (message[1].readStatus == false && message[1].user !== userUid) {
-        unreadCounter++;
-      }
-    });
-    return unreadCounter;
   };
 
   useEffect(() => {
-    getMatchedUser(matchedUser);
+    // getMatchedUser(matchedUser);
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    const messageWatch = onSnapshot(
-      doc(messageCollection, roomNumber),
-      (doc) => {
-        const sorted = Object.entries(doc.data()).sort(
-          (a, b) => new Date(b[0]) - new Date(a[0])
-        );
-        setSortedMessages(sorted);
+    const querySnapshot = onSnapshot(
+      query(messageCollection, where("roomNumber", "==", roomNumber)),
+      (snapshot) => {
+        snapshot.forEach((doc) => {
+          const messageRoomDocRef = doc.ref;
+          const usersArray = doc.data().users;
+          const [matched] = usersArray.filter((uid) => uid !== userUid);
+          const matchedUser = getMatchedUserProfile(matched);
+          matchedUser.then((response) => {
+            setMatchUserInfo(response);
+          });
+          const messageRoomMessagesCollectionRef = collection(
+            messageRoomDocRef,
+            "messages"
+          );
+          const queryMessages = query(
+            messageRoomMessagesCollectionRef,
+            orderBy("time", "desc")
+          );
+          const messagesWatcher = onSnapshot(
+            queryMessages,
+            (messagesSnapshot) => {
+              let messages = [];
+              const updateBatch = writeBatch(db);
+              messagesSnapshot.forEach((messageDoc) => {
+                messages.push(messageDoc.data());
+                updateBatch.update(messageDoc.ref, { readStatus: true });
+              });
+              setSortedMessages(messages);
+              setTimeout(() => {
+                updateBatch.commit();
+              }, 500);
+            }
+          );
+        });
       }
     );
+  }, [roomNumber]);
 
-    if (unreadMessageCount > 0) {
-      readMessages(sortedMessages);
-      updateMessages(sortedMessages);
-    }
-  }, [roomNumber, unreadMessageCount, sortedMessages]);
+  const getMatchedUserProfile = async (matchedUid) => {
+    const matchedProfile = await getDoc(doc(dataCollection, matchedUid));
+    const response = matchedProfile.data();
+    return response;
+  };
 
   if (loading) {
     return <Spinner />;
@@ -188,23 +177,41 @@ export const ChatRoom = () => {
             }}
           >
             {sortedMessages && !loading
-              ? sortedMessages.map((message, id) => {
+              ? sortedMessages?.map((message, id) => {
+                  const options = {
+                    year: "numeric",
+                    month: "numeric",
+                    day: "numeric",
+                    hour12: true,
+                    hour: "numeric",
+                    minute: "numeric",
+                    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                  };
+
+                  // Convert Firebase timestamp to milliseconds
+                  const timestampMilliseconds = message.time.seconds * 1000;
+
+                  // Create a new Date object with the timestamp in milliseconds
+                  const localTime = new Date(
+                    timestampMilliseconds
+                  ).toLocaleString("en-us", options);
+
                   return (
                     <>
                       <div className="flex flex-col">
                         {readHover === id ? (
-                          <p className="text-center">{message[1].readAt}</p>
+                          <p className="text-center">{localTime}</p>
                         ) : null}
                         <div
                           className={
-                            message[1].user == userUid
+                            message.user == userUid
                               ? "flex flex-row-reverse"
                               : "flex flex-row"
                           }
                         >
                           <h3
                             className={
-                              message[1].user == userUid
+                              message.user == userUid
                                 ? "bg-blue-600 text-white p-2 my-1 rounded-md "
                                 : "bg-gray-500 text-white p-2 my-1 rounded-md"
                             }
@@ -212,13 +219,13 @@ export const ChatRoom = () => {
                               setReadHover(id);
                             }}
                           >
-                            {message[1].text}
+                            {message.text}
                           </h3>
                         </div>
-                        {message[1].user == userUid ? (
+                        {message.user == userUid ? (
                           <div className="flex flex-row-reverse">
                             {readHover === id ? (
-                              <p>{message[1].readStatus ? "Read" : "Sent"}</p>
+                              <p>{message.readStatus ? "Read" : "Sent"}</p>
                             ) : null}
                           </div>
                         ) : null}

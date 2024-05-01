@@ -1,32 +1,25 @@
 import { useState, useEffect } from "react";
 import { useUserAuth } from "../../context/UserAuthContext";
-import { dataCollection } from "../../firebase/firebase-config";
+import { dataCollection, db } from "../../firebase/firebase-config";
 import {
   doc,
   getDoc,
-  query,
-  where,
-  getDocs,
-  arrayUnion,
-  updateDoc,
+  collection,
+  writeBatch,
   onSnapshot,
 } from "firebase/firestore";
 import { Button, Card, Modal, Carousel, Image, Layout } from "antd";
 import { useNavigate } from "react-router";
 import { StarTwoTone } from "@ant-design/icons";
+import { Spinner } from "../../components";
 
 const { Meta } = Card;
 
 const { Content } = Layout;
 
 export const MatchesPage = () => {
-  const {
-    userUid,
-    matchedUpdates,
-    setMatchedUpdates,
-    matchedUsers,
-    setMatchedUsers,
-  } = useUserAuth();
+  const { userUid, matchedUsers, setMatchedUsers, isLoading, setIsLoading } =
+    useUserAuth();
   const navigate = useNavigate();
 
   const [openModal, setOpenModal] = useState(false);
@@ -35,158 +28,150 @@ export const MatchesPage = () => {
   const getMatches = async () => {
     try {
       const userDocRef = doc(dataCollection, userUid);
-      const userDocSnapshot = await getDoc(userDocRef);
+      const chatRoomsCollectionRef = collection(userDocRef, "chatRooms");
 
-      if (userDocSnapshot.exists()) {
-        if (matchedUpdates) {
-          const matchedUid = matchedUpdates
-            .filter((field) => field.hasOwnProperty("uid"))
-            .map((field) => field.uid);
-          const uidQuery = query(
-            dataCollection,
-            where("userLogin.uid", "in", matchedUid)
-          );
-          const liveGetMatchedUsers = onSnapshot(uidQuery, (snapshot) => {
-            const profiles = [];
-            snapshot.forEach((doc) => {
-              profiles.push(doc.data());
-            });
+      const chatRoomWatcher = onSnapshot(chatRoomsCollectionRef, (snapshot) => {
+        const profiles = [];
+        const updateBatch = writeBatch(db);
+        snapshot.forEach((room) => {
+          const roomObj = room.data();
+          const matchedUser = roomObj.matchedUserUid;
+          const matchedProfile = getMatchedUserProfile(matchedUser);
+          matchedProfile.then((response) => {
+            roomObj.matchedUserProfile = response;
+            profiles.push(roomObj);
+          });
+          updateBatch.update(room.ref, { checked: true });
+        });
+        setIsLoading(false);
+        setTimeout(() => {
+          updateBatch.commit().then(() => {
             setMatchedUsers(profiles);
           });
-          updateMatchCheck();
-        }
-      }
+        }, 1000);
+      });
     } catch (error) {
       console.log(error);
     }
   };
 
-  const updateMatchCheck = async () => {
-    await new Promise((resolve) => {
-      setTimeout(() => {
-        setMatchedUpdates((prevMatchInfo) =>
-          prevMatchInfo.map((match) => ({ ...match, checked: true }))
-        );
-        resolve();
-      }, 300);
-    });
-    const userDocRef = doc(dataCollection, userUid);
-    try {
-      await updateDoc(userDocRef, {
-        matched: matchedUpdates,
-      });
-    } catch (error) {
-      console.log(error, "Error updating matches");
-    }
+  const getMatchedUserProfile = async (matchedUid) => {
+    const matchedProfile = await getDoc(doc(dataCollection, matchedUid));
+    const response = matchedProfile.data();
+    return response;
   };
 
   useEffect(() => {
     getMatches();
   }, [userUid]);
 
+  if (isLoading) {
+    return <Spinner />;
+  }
+
   return (
     <>
       <h1 className="text-center mt-5 mb-auto font-bold">Matches</h1>
-
-      <Layout
-        style={{
-          overflowY: "auto",
-          height: "100%",
-          background: "white",
-        }}
-      >
-        <Content
+      {!isLoading && (
+        <Layout
           style={{
-            overflow: "auto",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
+            overflowY: "auto",
+            height: "100%",
+            background: "white",
           }}
         >
-          {matchedUpdates ? (
-            matchedUpdates.map((match) => {
-              let user = {};
-              matchedUsers.forEach((profile) => {
-                if (profile.userLogin.uid == match.uid) {
-                  user.name = profile.userInfo.name;
-                  user.pictureUrl = profile.profilePicture.url;
-                  user.userInfo = profile.userInfo;
-                  user.pictures = profile.pictures;
-                }
-              });
-              return (
-                <Card
-                  hoverable
-                  style={{
-                    width: 240,
-                  }}
-                  cover={<img src={user.pictureUrl} />}
-                >
-                  <div className="flex flex-col gap-1">
-                    <Meta
-                      avatar={
-                        !match.checked && <StarTwoTone twoToneColor="#eb2f96" />
-                      }
-                      title={user.name}
-                    />
-                    <h3>Tier: {match.rank}</h3>
-                    <Button
-                      onClick={() => {
-                        navigate(`/chatroom/${match.room}/${match.uid}`);
-                      }}
-                    >
-                      Message
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setOpenModal(true);
-                        setSelectedUser(user);
-                      }}
-                    >
-                      Profile
-                    </Button>
-                    {openModal && selectedUser && (
-                      <Modal
-                        title={selectedUser.name}
-                        open={openModal}
-                        closable={true}
-                        footer={null}
-                        destroyOnClose={true}
-                        onCancel={() => {
-                          setOpenModal(false);
-                          setSelectedUser(null);
+          <Content
+            style={{
+              overflow: "auto",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            {matchedUsers.length > 0 ? (
+              matchedUsers.map((match) => {
+                const {
+                  matchedUserProfile,
+                  rank,
+                  matchedUserUid,
+                  checked,
+                  room,
+                } = match;
+
+                return (
+                  <Card
+                    hoverable
+                    style={{
+                      width: 240,
+                    }}
+                    cover={<img src={matchedUserProfile.profilePicture.url} />}
+                  >
+                    <div className="flex flex-col gap-1">
+                      <Meta
+                        avatar={
+                          !checked && <StarTwoTone twoToneColor="#eb2f96" />
+                        }
+                        title={matchedUserProfile.userInfo.name}
+                      />
+                      <h3>Tier: {rank}</h3>
+                      <Button
+                        onClick={() => {
+                          navigate(`/chatroom/${room}/${matchedUserUid}`);
                         }}
                       >
-                        <Carousel dotPosition="top" autoplay>
-                          {selectedUser?.pictures.map((pic) => (
-                            <div className="flex justify-center">
-                              <Image
-                                height={200}
-                                width={200}
-                                src={pic.url}
-                                path={pic.path}
-                              />
-                            </div>
-                          ))}
-                        </Carousel>
-                        <div className="m-5">
-                          {Object.keys(selectedUser.userInfo).map((info) => (
-                            <p className="text-center">
-                              {info}: {selectedUser.userInfo[info]}
-                            </p>
-                          ))}
-                        </div>
-                      </Modal>
-                    )}
-                  </div>
-                </Card>
-              );
-            })
-          ) : (
-            <h1>No Matches Yet!</h1>
-          )}
-        </Content>
-      </Layout>
+                        Message
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setOpenModal(true);
+                          setSelectedUser(match.matchedUserProfile);
+                        }}
+                      >
+                        Profile
+                      </Button>
+                      {openModal && selectedUser && (
+                        <Modal
+                          title={selectedUser.userInfo.name}
+                          open={openModal}
+                          closable={true}
+                          footer={null}
+                          destroyOnClose={true}
+                          onCancel={() => {
+                            setOpenModal(false);
+                            setSelectedUser(null);
+                          }}
+                        >
+                          <Carousel dotPosition="top" autoplay>
+                            {selectedUser?.pictures.map((pic) => (
+                              <div className="flex justify-center">
+                                <Image
+                                  height={200}
+                                  width={200}
+                                  src={pic.url}
+                                  path={pic.path}
+                                />
+                              </div>
+                            ))}
+                          </Carousel>
+                          <div className="m-5">
+                            {Object.keys(selectedUser.userInfo).map((info) => (
+                              <p className="text-center">
+                                {info}: {selectedUser.userInfo[info]}
+                              </p>
+                            ))}
+                          </div>
+                        </Modal>
+                      )}
+                    </div>
+                  </Card>
+                );
+              })
+            ) : (
+              <Spinner />
+            )}
+          </Content>
+        </Layout>
+      )}
     </>
   );
 };
