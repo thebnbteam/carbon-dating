@@ -1,13 +1,7 @@
 import { useState, useEffect } from "react";
 import { useUserAuth } from "../../context/UserAuthContext";
 import { dataCollection, db } from "../../firebase/firebase-config";
-import {
-  doc,
-  getDoc,
-  collection,
-  writeBatch,
-  onSnapshot,
-} from "firebase/firestore";
+import { doc, collection, writeBatch, onSnapshot } from "firebase/firestore";
 import { Button, Card, Modal, Carousel, Image, Layout } from "antd";
 import { useNavigate } from "react-router";
 import { StarTwoTone } from "@ant-design/icons";
@@ -18,52 +12,36 @@ const { Meta } = Card;
 const { Content } = Layout;
 
 export const MatchesPage = () => {
-  const { userUid, matchedUsers, setMatchedUsers, isLoading, setIsLoading } =
-    useUserAuth();
+  const { userUid, matchedUsers } = useUserAuth();
   const navigate = useNavigate();
-
   const [openModal, setOpenModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-
-  const getMatches = async () => {
-    try {
-      const userDocRef = doc(dataCollection, userUid);
-      const chatRoomsCollectionRef = collection(userDocRef, "chatRooms");
-
-      const chatRoomWatcher = onSnapshot(chatRoomsCollectionRef, (snapshot) => {
-        const profiles = [];
-        const updateBatch = writeBatch(db);
-        snapshot.forEach((room) => {
-          const roomObj = room.data();
-          const matchedUser = roomObj.matchedUserUid;
-          const matchedProfile = getMatchedUserProfile(matchedUser);
-          matchedProfile.then((response) => {
-            roomObj.matchedUserProfile = response;
-            profiles.push(roomObj);
-          });
-          updateBatch.update(room.ref, { checked: true });
-        });
-        setIsLoading(false);
-        setTimeout(() => {
-          updateBatch.commit().then(() => {
-            setMatchedUsers(profiles);
-          });
-        }, 1000);
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const getMatchedUserProfile = async (matchedUid) => {
-    const matchedProfile = await getDoc(doc(dataCollection, matchedUid));
-    const response = matchedProfile.data();
-    return response;
-  };
+  const [matchedRooms, setMatchedRooms] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    getMatches();
-  }, [userUid]);
+    const userDocRef = doc(dataCollection, userUid);
+    const chatRoomsCollectionRef = collection(userDocRef, "chatRooms");
+
+    const chatRoomWatcher = onSnapshot(chatRoomsCollectionRef, (snapshot) => {
+      const rooms = [];
+      const updateBatch = writeBatch(db);
+      snapshot.forEach((room) => {
+        rooms.push(room.data());
+        updateBatch.update(room.ref, { checked: true });
+      });
+      setMatchedRooms(rooms);
+      setTimeout(() => {
+        updateBatch.commit();
+      }, 1000);
+    });
+  }, [userUid, matchedUsers, matchedRooms]);
+
+  useEffect(() => {
+    if (matchedUsers && matchedRooms) {
+      setIsLoading(false);
+    }
+  }, []);
 
   if (isLoading) {
     return <Spinner />;
@@ -88,35 +66,33 @@ export const MatchesPage = () => {
               alignItems: "center",
             }}
           >
-            {matchedUsers.length > 0 ? (
-              matchedUsers.map((match) => {
-                const {
-                  matchedUserProfile,
-                  rank,
-                  matchedUserUid,
-                  checked,
-                  room,
-                } = match;
-
+            {matchedRooms && !isLoading ? (
+              matchedRooms.map((room, i) => {
+                const otherUser = room.matchedUserUid;
+                const foundUser = matchedUsers.find(
+                  (user) => user.userLogin.uid == otherUser
+                );
                 return (
                   <Card
                     hoverable
                     style={{
                       width: 240,
                     }}
-                    cover={<img src={matchedUserProfile.profilePicture.url} />}
+                    cover={<img src={foundUser?.profilePicture?.url} />}
                   >
                     <div className="flex flex-col gap-1">
                       <Meta
                         avatar={
-                          !checked && <StarTwoTone twoToneColor="#eb2f96" />
+                          !room.checked && (
+                            <StarTwoTone twoToneColor="#eb2f96" />
+                          )
                         }
-                        title={matchedUserProfile.userInfo.name}
+                        title={foundUser.userInfo.name}
                       />
-                      <h3>Tier: {rank}</h3>
+                      <h3>Tier: {room.rank}</h3>
                       <Button
                         onClick={() => {
-                          navigate(`/chatroom/${room}/${matchedUserUid}`);
+                          navigate(`/chatroom/${room.room}/${otherUser}`);
                         }}
                       >
                         Message
@@ -124,7 +100,7 @@ export const MatchesPage = () => {
                       <Button
                         onClick={() => {
                           setOpenModal(true);
-                          setSelectedUser(match.matchedUserProfile);
+                          setSelectedUser(foundUser);
                         }}
                       >
                         Profile

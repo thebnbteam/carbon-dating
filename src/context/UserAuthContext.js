@@ -41,7 +41,8 @@ export function UserAuthContextProvider({ children }) {
   const [matchedUsers, setMatchedUsers] = useState([]);
   const [messages, setMessages] = useState([]);
   const [unreadMessageCount, setUnreadMessageCount] = useState();
-  const [userData, setUserData] = useState();
+  const [recentMessages, setRecentMessages] = useState([]);
+  const [roomInfo, setRoomInfo] = useState([]);
 
   const signUp = async (email, password) => {
     try {
@@ -111,8 +112,9 @@ export function UserAuthContextProvider({ children }) {
           uid: user.uid,
         },
       };
+      setUserUid(user.uid);
+      const existingData = docSnapshot.data();
       if (docSnapshot.exists()) {
-        const existingData = docSnapshot.data();
         const { userInfo, categoryLikes, topFive, pictures, profilePicture } =
           existingData;
         setUserInfo(userInfo);
@@ -121,7 +123,6 @@ export function UserAuthContextProvider({ children }) {
         setUploadedPictures(pictures || []);
         setProfilePicture(profilePicture);
         setCurrentUserProfile(existingData);
-        setUserUid(user.uid);
         if (!existingData.userLogin) {
           await setDoc(userDocRef, userData);
         } else {
@@ -132,7 +133,7 @@ export function UserAuthContextProvider({ children }) {
       } else {
         await setDoc(userDocRef, userData);
       }
-      // setIsLoading(false);
+      setIsLoading(false);
     } catch (error) {
       console.log(error);
     }
@@ -155,7 +156,13 @@ export function UserAuthContextProvider({ children }) {
   };
 
   useEffect(() => {
-    onAuthStateChanged(auth, handleAuthStateChanged);
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        handleAuthStateChanged(user);
+      } else {
+        setUserUid(null);
+      }
+    });
   }, [auth]);
 
   return (
@@ -201,6 +208,10 @@ export function UserAuthContextProvider({ children }) {
         setMessages,
         unreadMessageCount,
         setUnreadMessageCount,
+        recentMessages,
+        setRecentMessages,
+        roomInfo,
+        setRoomInfo,
       }}
     >
       {children}

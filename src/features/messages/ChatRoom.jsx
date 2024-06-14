@@ -11,7 +11,7 @@ import {
   message,
 } from "antd";
 import { SendOutlined } from "@ant-design/icons";
-import { useParams } from "react-router";
+import { useParams, useLocation } from "react-router";
 
 import {
   doc,
@@ -43,9 +43,9 @@ const { TextArea } = Input;
 const { Header, Content, Footer } = Layout;
 
 export const ChatRoom = () => {
-  const { userUid, messages, setUnreadMessageCount, unreadMessageCount } =
-    useUserAuth();
-  const { roomNumber, matchedUser } = useParams();
+  const { userUid } = useUserAuth();
+  const { roomNumber, matchUserUid } = useParams();
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [newMessage, setNewMessage] = useState("");
   const [sortedMessages, setSortedMessages] = useState([]);
@@ -73,6 +73,11 @@ export const ChatRoom = () => {
         time: timestamp,
       };
 
+      await setDoc(
+        messageRoomDocRef,
+        { recentMessage: newMessage, sentBy: userUid },
+        { merge: true }
+      );
       await addDoc(messagesCollectionRef, messageData);
       console.log("Message sent");
       setNewMessage("");
@@ -82,8 +87,9 @@ export const ChatRoom = () => {
   };
 
   useEffect(() => {
-    // getMatchedUser(matchedUser);
-    setLoading(false);
+    if (matchUserInfo) {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -109,21 +115,27 @@ export const ChatRoom = () => {
           const messagesWatcher = onSnapshot(
             queryMessages,
             (messagesSnapshot) => {
-              let messages = [];
               const updateBatch = writeBatch(db);
+              let messages = [];
               messagesSnapshot.forEach((messageDoc) => {
                 messages.push(messageDoc.data());
-                updateBatch.update(messageDoc.ref, { readStatus: true });
+                if (messageDoc.data().user !== userUid) {
+                  updateBatch.update(messageDoc.ref, { readStatus: true });
+                }
               });
               setSortedMessages(messages);
               setTimeout(() => {
                 updateBatch.commit();
-              }, 500);
+              }, 1000);
             }
           );
         });
       }
     );
+
+    return () => {
+      querySnapshot();
+    };
   }, [roomNumber]);
 
   const getMatchedUserProfile = async (matchedUid) => {
@@ -138,7 +150,7 @@ export const ChatRoom = () => {
 
   return (
     <>
-      {!loading ? (
+      {!loading && matchUserInfo?.userLogin?.uid ? (
         <Layout
           style={{
             padding: 10,
@@ -176,7 +188,7 @@ export const ChatRoom = () => {
               flexDirection: "column-reverse",
             }}
           >
-            {sortedMessages && !loading
+            {sortedMessages && matchUserInfo?.userLogin?.uid
               ? sortedMessages?.map((message, id) => {
                   const options = {
                     year: "numeric",

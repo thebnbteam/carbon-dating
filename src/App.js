@@ -11,9 +11,12 @@ import {
   doc,
   getDoc,
   collection,
+  orderBy,
+  limit,
 } from "firebase/firestore";
 import { dataCollection, messageCollection } from "./firebase/firebase-config";
 import { Button, Layout, message, notification } from "antd";
+import { ConsoleSqlOutlined } from "@ant-design/icons";
 
 const { Header, Content, Footer } = Layout;
 
@@ -31,6 +34,8 @@ function App() {
     setUnreadMessageCount,
     currentUserProfile,
     setIsLoading,
+    setRecentMessages,
+    setRoomInfo,
   } = useUserAuth();
   const [calibrationDone, setCalibrationDone] = useState(false);
   const [api, contextHolder] = notification.useNotification();
@@ -101,88 +106,72 @@ function App() {
     });
   };
 
-  // const onlineWatcher = async () => {
-  //   try {
-  //     if (userUid) {
-  //       const userLiveUpdates = onSnapshot(
-  //         doc(dataCollection, userUid),
-  //         (doc) => {
-  //           if (doc.data().matched) {
-  //             setMatchedUpdates(doc.data().matched);
-  //             doc.data().matched.forEach((match) => {
-  //               if (match.checked == false) {
-  //                 matchNotification();
-  //               }
-  //             });
-  //           }
-  //           const roomArray = doc.data().chatRooms;
-  //           if (roomArray) {
-  //             const chatSorted = [];
-  //             const promises = roomArray.map((room) => {
-  //               return new Promise((resolve, reject) => {
-  //                 const tempObj = {};
-  //                 const liveChatPromise = new Promise((liveResolve) => {
-  //                   onSnapshot(
-  //                     query(
-  //                       dataCollection,
-  //                       where("userLogin.uid", "==", room.uid)
-  //                     ),
-  //                     (snapshot) => {
-  //                       snapshot.forEach((doc) => {
-  //                         tempObj.user = doc.data();
-  //                       });
-  //                       liveResolve();
-  //                     }
-  //                   );
-  //                 });
-  //                 const messageCollectionPromise = new Promise(
-  //                   (messageResolve) => {
-  //                     onSnapshot(messageCollection, (snapshot) => {
-  //                       snapshot.forEach((doc) => {
-  //                         if (doc.id == room.roomId) {
-  //                           tempObj.room = doc.id;
-  //                           tempObj.messages = Object.entries(doc.data()).sort(
-  //                             (a, b) => new Date(b[0]) - new Date(a[0])
-  //                           );
-  //                         }
-  //                       });
-  //                       const messageCount = messageCounter(tempObj.messages);
+  const newMessageWatcher = async () => {
+    const userDocRef = doc(dataCollection, userUid);
+    const chatRoomsCollectionRef = collection(userDocRef, "chatRooms");
+    const chatRoomWatch = onSnapshot(chatRoomsCollectionRef, (docs) => {
+      const rooms = [];
+      const matchedUser = [];
+      docs.forEach((doc) => {
+        rooms.push(doc.data().room);
+        matchedUser.push(doc.data().matchedUserUid);
+      });
+      const matchedUserProfilesQuery = query(
+        dataCollection,
+        where("userLogin.uid", "in", matchedUser)
+      );
+      const messageRoomQuery = query(
+        messageCollection,
+        where("roomNumber", "in", rooms)
+      );
 
-  //                       if (messageCount > 0) {
-  //                         setUnreadMessageCount(messageCount);
-  //                         messageNotification(messageCount);
-  //                       }
-  //                       messageResolve();
-  //                     });
-  //                   }
-  //                 );
+      const matchedUserProfileGrab = onSnapshot(
+        matchedUserProfilesQuery,
+        (docs) => {
+          const matchedUser = [];
+          docs.forEach((doc) => {
+            matchedUser.push(doc.data());
+          });
+          setMatchedUsers(matchedUser);
+        }
+      );
 
-  //                 Promise.all([liveChatPromise, messageCollectionPromise])
-  //                   .then(() => {
-  //                     setMessages([tempObj]);
-  //                     resolve();
-  //                   })
-  //                   .catch(reject);
-  //               });
-  //             });
-  //           }
-  //         }
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.error("Error loading live matches", error);
-  //   }
-  // };
+      const messagesUnread = onSnapshot(messageRoomQuery, (docs) => {
+        const roomData = [];
+        docs.forEach((doc) => {
+          const { users, ...rest } = doc.data();
+          const [otherUsers] = users.filter((user) => user !== userUid);
+          const newData = { ...rest, users: otherUsers };
+          roomData.push(newData);
 
-  // const messageCounter = (sortedChat) => {
-  //   let unreadCounter = 0;
-  //   sortedChat.forEach((message) => {
-  //     if (message[1].readStatus == false && message[1].user !== userUid) {
-  //       unreadCounter++;
-  //     }
-  //   });
-  //   return unreadCounter;
-  // };
+          const messagesCollectionRef = collection(doc.ref, "messages");
+
+          const unreadQuery = query(
+            messagesCollectionRef,
+            where("readStatus", "==", false)
+          );
+
+          const messagesUnreadSub = onSnapshot(unreadQuery, (messagesDocs) => {
+            const unReadArray = [];
+            messagesDocs.forEach((messageDoc) => {
+              if (messageDoc.data().user !== userUid) {
+                console.log(messageDoc.data());
+                unReadArray.push(messageDoc.data());
+              }
+            });
+            if (unReadArray.length > 0) {
+              messageNotification(unReadArray.length);
+              setUnreadMessageCount(unReadArray.length);
+            } else {
+              setUnreadMessageCount(0);
+            }
+          });
+        });
+        console.log(roomData);
+        setRoomInfo(roomData);
+      });
+    });
+  };
 
   useEffect(() => {
     if (userUid) {
@@ -190,8 +179,8 @@ function App() {
         if (currentUserProfile?.swiped?.yes?.length > 0) {
           fetchNotSwipedUsers(currentUserProfile.swiped.yes);
         }
-
         newMatchWatcher();
+        newMessageWatcher();
         setCalibrationDone(true);
         navigate("/profilepage");
       } else if (userInfo && categoryLikes) {
@@ -201,9 +190,11 @@ function App() {
       } else {
         navigate("/calibratelandingpage");
       }
+    } else {
+      navigate("/");
+      setIsLoading(false);
     }
-    setIsLoading(false);
-  }, [currentUserProfile]);
+  }, [userUid]);
 
   if (isLoading) {
     return <Spinner />;

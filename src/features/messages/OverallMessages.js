@@ -1,5 +1,5 @@
 import { Input, Button, Card, Image, Badge } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useUserAuth } from "../../context/UserAuthContext";
 
@@ -7,14 +7,37 @@ import { useNavigate } from "react-router";
 
 import { Layout } from "antd";
 
+import { Spinner } from "../../components";
+
 const { Search } = Input;
 const { Meta } = Card;
 const { Content } = Layout;
-
 export const OverallMessages = () => {
   const navigate = useNavigate();
-  const { messages, unreadMessageCount } = useUserAuth();
+  const { userUid, matchedUsers, roomInfo, unreadMessageCount } = useUserAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [allRecentMessages, setAllRecentMessages] = useState();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (roomInfo && matchedUsers) {
+      setLoading(false);
+    }
+  }, [userUid, roomInfo, matchedUsers]);
+
+  if (loading) {
+    <Spinner />;
+  }
+
+  const filteredRoomInfo = roomInfo.filter((room) => {
+    const otherUser = room.users;
+    const foundUser = matchedUsers.find(
+      (user) => user.userLogin.uid === otherUser
+    );
+    return foundUser?.userInfo?.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+  });
 
   return (
     <>
@@ -41,38 +64,48 @@ export const OverallMessages = () => {
             alignItems: "center",
           }}
         >
-          {messages
-            ? messages.map((room) => {
+          {!loading && filteredRoomInfo
+            ? filteredRoomInfo?.map((room, i) => {
+                const otherUser = room.users;
+                const foundUser = matchedUsers.find(
+                  (user) => user.userLogin.uid == otherUser
+                );
+
                 return (
-                  <Card hoverable className="m-2">
-                    <Meta title={room.user.userInfo.name} />
-                    <div className="flex">
-                      <Image width={150} src={room.user.profilePicture.url} />
-                      <div className="flex flex-col m-2">
-                        <Badge offset={[12, 3]} count={unreadMessageCount}>
-                          <h3 className="font-bold">Most Recent Message</h3>
-                        </Badge>
-                        <p>
-                          {room?.messages[0]
-                            ? room?.messages[0][1]?.text
-                            : "No Messages Yet"}
-                        </p>
-                        <Button
-                          className="m-1"
-                          onClick={() => {
-                            navigate(
-                              `/chatroom/${room.room}/${room.user.userLogin.uid}`
-                            );
-                          }}
-                        >
-                          Message
-                        </Button>
+                  <>
+                    <Card hoverable className="m-2" key={i}>
+                      <Meta title={foundUser?.userInfo?.name} />
+                      <div className="flex">
+                        <Image
+                          width={150}
+                          src={foundUser?.profilePicture?.url}
+                        />
+                        <div className="flex flex-col m-2">
+                          <Badge offset={[12, 3]} count={unreadMessageCount}>
+                            <h3 className="font-bold">Most Recent Message</h3>
+                          </Badge>
+                          <p>
+                            {room?.recentMessage
+                              ? room?.recentMessage
+                              : "No messages yet"}
+                          </p>
+                          <Button
+                            className="m-1"
+                            onClick={() => {
+                              navigate(
+                                `/chatroom/${room.roomNumber}/${foundUser.userLogin.uid}`
+                              );
+                            }}
+                          >
+                            Message
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </Card>
+                    </Card>
+                  </>
                 );
               })
-            : "No Recent Messages"}
+            : "Start by swiping"}
         </Content>
       </Layout>
     </>
